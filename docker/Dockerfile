@@ -29,7 +29,11 @@ ARG PYTHON_VERSION=3.9
 
 FROM ${BASE_IMAGE} AS compile-image
 ARG BASE_IMAGE=ubuntu:rolling
+<<<<<<< HEAD
 ARG PYTHON_VERSION
+=======
+ARG PYTHON_VERSION=3.9
+>>>>>>> 26089d44 (Add support for building docker images with specified python version (#2154))
 ENV PYTHONUNBUFFERED TRUE
 
 RUN --mount=type=cache,id=apt-dev,target=/var/cache/apt \
