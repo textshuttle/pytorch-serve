@@ -185,7 +185,7 @@ public class RestJob extends Job {
         } else if (responsePromise != null) {
             responsePromise.complete(body);
         }
-        
+
         if (numStreams <= 0) {
             if (this.inferenceLatencyMetric != null) {
                 try {

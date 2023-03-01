@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -17,6 +16,7 @@ import org.pytorch.serve.archive.model.ModelArchive;
 import org.pytorch.serve.archive.model.ModelConfig;
 import org.pytorch.serve.job.Job;
 import org.pytorch.serve.util.ConfigManager;
+import org.pytorch.serve.util.PriorityLinkedBlockingDeque;
 import org.pytorch.serve.util.messages.WorkerCommands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +52,8 @@ public class Model {
     private int numCores;
     private ReentrantLock lock;
     private int responseTimeout;
+    private int queueSize;
+    private int nPriorities;
     private ModelVersionName modelVersionName;
     private AtomicInteger gpuCounter = new AtomicInteger(0);
     private boolean hasCfgDeviceIds;
@@ -61,9 +63,9 @@ public class Model {
     private AtomicInteger failedInfReqs;
 
     // Per worker thread job queue. This separates out the control queue from data queue
-    private ConcurrentMap<String, LinkedBlockingDeque<Job>> jobsDb;
+    private ConcurrentMap<String, PriorityLinkedBlockingDeque<Job>> jobsDb;
 
-    public Model(ModelArchive modelArchive, int queueSize) {
+    public Model(ModelArchive modelArchive, int queueSize, int nPriorities) {
         this.modelArchive = modelArchive;
         if (modelArchive != null && modelArchive.getModelConfig() != null) {
             if (modelArchive.getModelConfig().getParallelLevel() > 1
@@ -107,14 +109,25 @@ public class Model {
                             : ConfigManager.getInstance().getNumberOfGpu();
         }
 
+        this.queueSize = queueSize;
+        this.nPriorities = nPriorities;
+        // TODO Simon: These two are commented out for now, as we set the further above
+        // verify that this is correct
+        // batchSize = 1;
+        //maxBatchDelay = 100;
+
         jobsDb = new ConcurrentHashMap<>();
         // Always have a queue for data
-        jobsDb.putIfAbsent(DEFAULT_DATA_QUEUE, new LinkedBlockingDeque<>(queueSize));
+        jobsDb.putIfAbsent(DEFAULT_DATA_QUEUE, new PriorityLinkedBlockingDeque<>(this.nPriorities, this.queueSize));
         failedInfReqs = new AtomicInteger(0);
         lock = new ReentrantLock();
         modelVersionName =
                 new ModelVersionName(
                         this.modelArchive.getModelName(), this.modelArchive.getModelVersion());
+    }
+
+    public Model(ModelArchive modelArchive, int queueSize) {
+        this(modelArchive, queueSize, 1);
     }
 
     public JsonObject getModelState(boolean isDefaultVersion) {
@@ -210,9 +223,9 @@ public class Model {
     }
 
     public void addJob(String threadId, Job job) {
-        LinkedBlockingDeque<Job> blockingDeque = jobsDb.get(threadId);
+        PriorityLinkedBlockingDeque<Job> blockingDeque = jobsDb.get(threadId);
         if (blockingDeque == null) {
-            blockingDeque = new LinkedBlockingDeque<>();
+            blockingDeque = new PriorityLinkedBlockingDeque<>(this.nPriorities, this.queueSize);
             jobsDb.put(threadId, blockingDeque);
         }
         blockingDeque.offer(job);
@@ -243,7 +256,7 @@ public class Model {
                     "The jobs repo provided contains stale jobs. Clear them!!");
         }
 
-        LinkedBlockingDeque<Job> jobsQueue = jobsDb.get(threadId);
+        PriorityLinkedBlockingDeque<Job> jobsQueue = jobsDb.get(threadId);
         if (jobsQueue != null && !jobsQueue.isEmpty()) {
             Job j = jobsQueue.poll(waitTime, TimeUnit.MILLISECONDS);
             if (j != null) {

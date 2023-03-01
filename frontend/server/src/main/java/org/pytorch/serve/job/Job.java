@@ -5,8 +5,9 @@ import static org.pytorch.serve.util.messages.RequestInput.TS_STREAM_NEXT;
 import java.util.Map;
 import org.pytorch.serve.util.messages.RequestInput;
 import org.pytorch.serve.util.messages.WorkerCommands;
+import org.pytorch.serve.util.Prioritisable;
 
-public abstract class Job {
+public abstract class Job implements Prioritisable {
 
     private String modelName;
     private String modelVersion;
