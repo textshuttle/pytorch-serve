@@ -127,7 +127,7 @@ public class Model {
     }
 
     public Model(ModelArchive modelArchive, int queueSize) {
-        this(modelArchive, queueSize, 1);
+        this(modelArchive, queueSize, 3);
     }
 
     public JsonObject getModelState(boolean isDefaultVersion) {
