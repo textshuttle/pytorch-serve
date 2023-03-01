@@ -3,6 +3,9 @@ package org.pytorch.serve.util;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.function.BiFunction;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,8 +55,9 @@ public class PriorityLinkedBlockingDeque<T extends Prioritisable> {
     }
 
     public boolean isEmpty() {
-        // TODO: I think the proper way of doing this would be ConcurrentHashMap.reduceValues
-        return priorityDeques.get(0).isEmpty();
+        Function<LinkedBlockingDeque<T>, Boolean> getIsEmpty = (LinkedBlockingDeque<T> deque) -> deque.isEmpty();
+        BiFunction<Boolean, Boolean, Boolean> logicalAnd = (Boolean a, Boolean b) -> a && b;
+        return priorityDeques.reduceValues(Long.MAX_VALUE, getIsEmpty, logicalAnd);
     }
 
     public boolean offer(T p) {
