@@ -3,8 +3,9 @@ package org.pytorch.serve.job;
 import java.util.Map;
 import org.pytorch.serve.util.messages.RequestInput;
 import org.pytorch.serve.util.messages.WorkerCommands;
+import org.pytorch.serve.util.Prioritisable;
 
-public abstract class Job {
+public abstract class Job implements Prioritisable {
 
     private String modelName;
     private String modelVersion;
