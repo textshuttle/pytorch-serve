@@ -10,6 +10,7 @@ package org.pytorch.serve.servingsdk.metrics;
 public class InbuiltMetricsRegistry {
     public static final String INFERENCEREQUESTS = "InferenceRequests";
     public static final String QUEUETIME = "QueueTime";
+    public static final String REQUESTPRIORITY = "RequestPriority";
     public static final String BACKENDRESPONSETIME = "BackendResponseTime";
     public static final String HANDLERTIME = "HandlerTime";
     public static final String WORKERTHREADTIME = "WorkerThreadTime";
