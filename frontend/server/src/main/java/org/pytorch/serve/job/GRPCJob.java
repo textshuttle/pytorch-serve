@@ -79,6 +79,8 @@ public class GRPCJob extends Job {
                             && responseHeaders.get(TS_STREAM_NEXT).equals("false"))) {
                 predictionResponseObserver.onCompleted();
 
+                        // TODO Simon: During rebase this part was moved inside the if bloc,
+                        // verify that this is correct
                 logger.debug(
                         "Waiting time ns: {}, Backend time ns: {}",
                         getScheduled() - getBegin(),
@@ -94,8 +96,27 @@ public class GRPCJob extends Job {
                     } catch (Exception e) {
                         logger.error("Failed to update frontend metric QueueTime: ", e);
                     }
+
+                    // TODO Simon: should these two logs also be in the if (this.queTimeMetric != null) clause?
+                    loggerTsMetrics.info(
+                            "{}",
+                            new Metric(
+                                    "QueueTime",
+                                    String.valueOf(queueTime),
+                                    "ms",
+                                    ConfigManager.getInstance().getHostName(),
+                                    DIMENSION));
+                    loggerTsMetrics.info(
+                            "{}",
+                            new Metric(
+                                    "RequestPriority",
+                                    String.valueOf(this.getPriority()),
+                                    "int",
+                                    ConfigManager.getInstance().getHostName(),
+                                    DIMENSION));
                 }
             }
+
         } else if (this.getCmd() == WorkerCommands.DESCRIBE) {
             try {
                 ArrayList<DescribeModelResponse> respList =

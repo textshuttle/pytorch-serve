@@ -185,7 +185,7 @@ public class RestJob extends Job {
         } else if (responsePromise != null) {
             responsePromise.complete(body);
         }
-
+        
         if (numStreams <= 0) {
             if (this.inferenceLatencyMetric != null) {
                 try {
@@ -223,6 +223,24 @@ public class RestJob extends Job {
                 } catch (Exception e) {
                     logger.error("Failed to update frontend metric QueueTime: ", e);
                 }
+
+                // TODO Simon: should these two logs also be in the if clause?
+                loggerTsMetrics.info(
+                        "{}",
+                        new Metric(
+                                "QueueTime",
+                                queueTime,
+                                "ms",
+                                ConfigManager.getInstance().getHostName(),
+                                DIMENSION));
+                loggerTsMetrics.info(
+                        "{}",
+                        new Metric(
+                                "RequestPriority",
+                                String.valueOf(this.getPriority()),
+                                "int",
+                                ConfigManager.getInstance().getHostName(),
+                                DIMENSION));
             }
         }
     }
