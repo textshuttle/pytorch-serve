@@ -82,6 +82,14 @@ public class GRPCJob extends Job {
                             "ms",
                             ConfigManager.getInstance().getHostName(),
                             DIMENSION));
+            loggerTsMetrics.info(
+                "{}",
+                new Metric(
+                        "RequestPriority",
+                        String.valueOf(this.getPriority()),
+                        "int",
+                        ConfigManager.getInstance().getHostName(),
+                        DIMENSION));
         } else if (this.getCmd() == WorkerCommands.DESCRIBE) {
             try {
                 ArrayList<DescribeModelResponse> respList =
