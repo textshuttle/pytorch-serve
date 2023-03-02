@@ -11,7 +11,8 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PriorityLinkedBlockingDeque<T extends Prioritisable> {
+@SuppressWarnings("serial")
+public class PriorityLinkedBlockingDeque<T extends Prioritisable> extends LinkedBlockingDeque<T> {
 
     private static final Logger logger = LoggerFactory.getLogger(PriorityLinkedBlockingDeque.class);
 
@@ -20,6 +21,7 @@ public class PriorityLinkedBlockingDeque<T extends Prioritisable> {
     private int[] weightedPriorityMap;
     private ConcurrentHashMap<Integer, LinkedBlockingDeque<T>> priorityDeques;
 
+    // constructor
     public PriorityLinkedBlockingDeque(int nPriorities, int queueSize) {
 
         this.nPriorities = nPriorities;
@@ -43,14 +45,6 @@ public class PriorityLinkedBlockingDeque<T extends Prioritisable> {
             }
         }
         logger.warn(Arrays.toString(this.weightedPriorityMap));
-    }
-
-    public PriorityLinkedBlockingDeque(int nPriorities) {
-        this(nPriorities, Integer.MAX_VALUE);
-    }
-
-    public PriorityLinkedBlockingDeque() {
-        this(1);
     }
 
     private LinkedBlockingDeque<T> getDequeForExtraction() {
@@ -104,12 +98,11 @@ public class PriorityLinkedBlockingDeque<T extends Prioritisable> {
         getDequeForInsertion(p).addFirst(p);
     }
 
-    public T poll(long timeout, TimeUnit unit) throws InterruptedException {
-        return getDequeForExtraction().poll(timeout, unit);
+    // unlinkFirst is used by the relevant extraction methods such as poll(long timeout, TimeUnit unit)
+    // ideally, we would want to forward this to getDequeForExtraction().unlinkFirst(), but it is private
+    // pollFirst() is a public method that forwards unlinkFirst(), so it's the next best alternative
+    // reference: https://github.com/openjdk/jdk17/blob/master/src/java.base/share/classes/java/util/concurrent/LinkedBlockingDeque.java 
+    private T unlinkFirst() {
+        return getDequeForExtraction().pollFirst();
     }
-
-    public T poll() {
-        return getDequeForExtraction().poll();
-    }
-
 }
