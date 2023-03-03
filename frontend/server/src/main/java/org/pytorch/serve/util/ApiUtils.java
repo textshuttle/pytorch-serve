@@ -433,14 +433,16 @@ public final class ApiUtils {
 
     @SuppressWarnings("PMD")
     public static String getInferenceErrorResponseMessage(String modelName, String modelVersion, int jobPriority) {
-        String responseMessage = "Model \"" + modelName;
+        String responseMessage = "Model: " + modelName + "\n";
 
         if (modelVersion != null) {
-            responseMessage += "\" version " + modelVersion;
+            responseMessage += "Version: " + modelVersion + "\n";
         }
 
+        responseMessage += "Priority: " + String.valueOf(jobPriority) + "\n";
+
         responseMessage +=
-                "\" queue is full for jobs with priority " + String.valueOf(jobPriority) + ".";
+                "Reason: queue full";
         return responseMessage;
     }
 
