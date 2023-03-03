@@ -65,7 +65,6 @@ public class Model {
         modelVersionName =
                 new ModelVersionName(
                         this.modelArchive.getModelName(), this.modelArchive.getModelVersion());
-        logger.debug("Model constructor finished with queueSize " + String.valueOf(queueSize) + " and nPriorities " + String.valueOf(nPriorities));
     }
 
     public JsonObject getModelState(boolean isDefaultVersion) {
@@ -190,7 +189,6 @@ public class Model {
 
         PriorityLinkedBlockingDeque<Job> jobsQueue = jobsDb.get(threadId);
         if (jobsQueue != null && !jobsQueue.isEmpty()) {
-            logger.debug("initial waitTime poll");
             Job j = jobsQueue.poll(waitTime, TimeUnit.MILLISECONDS);
             if (j != null) {
                 jobsRepo.put(j.getJobId(), j);
@@ -203,7 +201,6 @@ public class Model {
             long maxDelay = maxBatchDelay;
             jobsQueue = jobsDb.get(DEFAULT_DATA_QUEUE);
 
-            logger.debug("initial maxTime poll");
             Job j = jobsQueue.poll(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
             logger.trace("get first job: {}", Objects.requireNonNull(j).getJobId());
 
@@ -214,7 +211,6 @@ public class Model {
             }
             long begin = System.currentTimeMillis();
             for (int i = 0; i < batchSize - 1; ++i) {
-                logger.debug("maxDelay poll");
                 j = jobsQueue.poll(maxDelay, TimeUnit.MILLISECONDS);
                 if (j == null) {
                     break;
