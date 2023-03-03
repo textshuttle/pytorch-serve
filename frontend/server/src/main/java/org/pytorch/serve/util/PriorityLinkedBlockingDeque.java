@@ -16,16 +16,12 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("serial")
 public class PriorityLinkedBlockingDeque<T extends Prioritisable> {
 
     private static final Logger logger = LoggerFactory.getLogger(PriorityLinkedBlockingDeque.class);
 
-    /** Main lock guarding all access */
+    // Lock and condition for waiting on empty queues
     final ReentrantLock lock = new ReentrantLock();
-
-    /** Condition for waiting takes */
-    @SuppressWarnings("serial") // Classes implementing Condition may be serializable.
     private final Condition notEmpty = lock.newCondition();
 
     private int nPriorities;
@@ -169,9 +165,4 @@ public class PriorityLinkedBlockingDeque<T extends Prioritisable> {
             lock.unlock();
         }
     }
-
-    private void writeObject(ObjectOutputStream oos) throws IOException {
-       throw new IOException("This class is NOT serializable.");
-    }
-
 }
