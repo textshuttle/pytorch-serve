@@ -92,7 +92,8 @@ public class PriorityLinkedBlockingDeque<T extends Prioritisable> {
         LinkedBlockingDeque<T> dequeForInsertion = this.priorityDeques.get(priority);
 
         if (dequeForInsertion == null) {
-            logger.warn("Priority value "  + String.valueOf(priority) + " not valid, setting to highest valid priority value.");
+            logger.warn("Priority value "  + String.valueOf(priority) + " not valid, setting to highest valid priority value " 
+                + String.valueOf(this.nPriorities - 1) + ".");
             int newPriority = this.nPriorities - 1;
             p.setPriority(newPriority);
             dequeForInsertion = this.priorityDeques.get(newPriority);
@@ -114,8 +115,10 @@ public class PriorityLinkedBlockingDeque<T extends Prioritisable> {
         lock.lock();
         try {
             boolean itemInserted = getDequeForInsertion(p).offer(p);
-            // awaken one thread that is waiting for notEmpty condition
-            notEmpty.signal();
+            if (itemInserted) {
+                // awaken one thread that is waiting for notEmpty condition
+                notEmpty.signal();
+            }
             return itemInserted;
         } finally {
             lock.unlock();

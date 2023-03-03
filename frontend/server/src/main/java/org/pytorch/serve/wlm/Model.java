@@ -65,11 +65,7 @@ public class Model {
         modelVersionName =
                 new ModelVersionName(
                         this.modelArchive.getModelName(), this.modelArchive.getModelVersion());
-        logger.debug("Model constructor finished");
-    }
-
-    public Model(ModelArchive modelArchive, int queueSize) {
-        this(modelArchive, queueSize, 3);
+        logger.debug("Model constructor finished with queueSize " + String.valueOf(queueSize) + " and nPriorities " + String.valueOf(nPriorities));
     }
 
     public JsonObject getModelState(boolean isDefaultVersion) {
