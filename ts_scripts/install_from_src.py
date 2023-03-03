@@ -33,6 +33,6 @@ if __name__ == "__main__":
     check_python_version()
     from pygit2 import Repository
 
-    Repository(".").head.shorthand
+    git_branch = Repository(".").head.shorthand
     build_hdr_printer.main(git_branch)
     install_from_src(args.environment == "dev")
