@@ -33,7 +33,6 @@ if __name__ == "__main__":
     check_python_version()
     from pygit2 import Repository
 
-    # hardcode since submodules mess up pygit2 repository head
-    git_branch = "feature/multi_queue_wrapper"  # Repository(".").head.shorthand
+    Repository(".").head.shorthand
     build_hdr_printer.main(git_branch)
     install_from_src(args.environment == "dev")
