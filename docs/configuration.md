@@ -276,7 +276,7 @@ Most of the following properties are designed for performance tuning. Adjusting 
 * `netty_client_threads`: Number of backend netty thread. This specifies the number of threads in the WorkerThread [EventLoopGroup](https://livebook.manning.com/book/netty-in-action/chapter-8) which writes inference responses to the frontend. Default: number of logical processors available to the JVM.
 * `default_workers_per_model`: Number of workers to create for each model that loaded at startup time. Default: available GPUs in system or number of logical processors available to the JVM.
 * `job_queue_size`: Number inference jobs that frontend will queue before backend can serve. Default: 100.
-* `n_priorities`: Number of priorities that jobs can have supplied via header `X-Priority`. Default: 1.
+* `n_priorities`: Number of priorities that jobs can have supplied via header `X-TS-Priority`. Default: 1.
 * `async_logging`: Enable asynchronous logging for higher throughput, log output may be delayed if this is enabled. Default: false.
 * `default_response_timeout`: Timeout, in seconds, used for all models backend workers before they are deemed unresponsive and rebooted. Default: 120 seconds.
 * `unregister_model_timeout`: Timeout, in seconds, used when handling an unregister model request when cleaning a process before it is deemed unresponsive and an error response is sent. Default: 120 seconds.
