@@ -27,12 +27,14 @@ if __name__ == "__main__":
         "--environment",
         type=str,
         default="production",
-        help="options: dev|prod",
+        help="options: dev|production",
+    )
+    parser.add_argument(
+        "--git-branch",
+        type=str,
+        default="main",
     )
     args = parser.parse_args()
     check_python_version()
-    from pygit2 import Repository
-
-    git_branch = Repository(".").head.shorthand
-    build_hdr_printer.main(git_branch)
+    build_hdr_printer.main(args.git_branch)
     install_from_src(args.environment == "dev")
