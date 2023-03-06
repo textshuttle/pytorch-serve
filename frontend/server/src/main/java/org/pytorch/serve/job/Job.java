@@ -29,8 +29,8 @@ public abstract class Job implements Prioritisable {
         }
 
         Map<String, String> headers = input.getHeaders();
-        if (headers.containsKey("X-Priority")) {
-            this.priority = Integer.parseInt(headers.get("X-Priority"));
+        if (headers.containsKey("X-TS-Priority")) {
+            this.priority = Integer.parseInt(headers.get("X-TS-Priority"));
         } else {
             this.priority = 0;
         }
