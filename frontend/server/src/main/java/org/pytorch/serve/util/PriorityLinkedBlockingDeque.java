@@ -29,6 +29,7 @@ public class PriorityLinkedBlockingDeque<T extends Prioritisable> {
         this.nPriorities = nPriorities;
         this.priorityDeques = new ConcurrentHashMap<Integer, LinkedBlockingDeque<T>>();
 
+        // note: the weight calculation logic may be adapted to the user's needs
         // sum of 0 + 1 + 2 + ... + nPriorities - 1 via triangular sum
         this.sumPriorityWeights = ((this.nPriorities - 1) * this.nPriorities) / 2;
         this.weightedPriorityMap = new int[sumPriorityWeights];
@@ -130,6 +131,10 @@ public class PriorityLinkedBlockingDeque<T extends Prioritisable> {
         }
     }
 
+    /*
+    this is exactly the same as the equivalent method in LinkedBlockingDeque, the difference is in the implementation of unlinkFirst()
+    reference: https://github.com/openjdk/jdk17/blob/master/src/java.base/share/classes/java/util/concurrent/LinkedBlockingDeque.java
+    */
     public T poll(long timeout, TimeUnit unit) throws InterruptedException {
         long nanos = unit.toNanos(timeout);
         final ReentrantLock lock = this.lock;
