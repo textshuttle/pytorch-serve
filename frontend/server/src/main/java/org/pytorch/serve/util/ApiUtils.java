@@ -402,22 +402,25 @@ public final class ApiUtils {
             throws ModelNotFoundException, ModelVersionNotFoundException {
         RestJob job = new RestJob(ctx, modelName, version, WorkerCommands.PREDICT, input);
         if (!ModelManager.getInstance().addJob(job)) {
-            String responseMessage = getInferenceErrorResponseMessage(modelName, version);
+            int priority = job.getPriority();
+            String responseMessage = getInferenceErrorResponseMessage(modelName, version, priority);
             throw new ServiceUnavailableException(responseMessage);
         }
         return job;
     }
 
     @SuppressWarnings("PMD")
-    public static String getInferenceErrorResponseMessage(String modelName, String modelVersion) {
-        String responseMessage = "Model \"" + modelName;
+    public static String getInferenceErrorResponseMessage(String modelName, String modelVersion, int jobPriority) {
+        String responseMessage = "Model: " + modelName + "\n";
 
         if (modelVersion != null) {
-            responseMessage += "\" Version " + modelVersion;
+            responseMessage += "Version: " + modelVersion + "\n";
         }
 
+        responseMessage += "Priority: " + String.valueOf(jobPriority) + "\n";
+
         responseMessage +=
-                "\" has no worker to serve inference request. Please use scale workers API to add workers.";
+                "Reason: queue full";
         return responseMessage;
     }
 
