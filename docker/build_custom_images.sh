@@ -11,3 +11,9 @@
 
 # build prio-gpu
 ./build_image.sh -bt dev -g -cv cu113 -b feature/priority-linked-blocking-deque -t textshuttle/pytorch-serve:prio-gpu
+
+# build prio-qt-cpu
+./build_image.sh -bt dev -b feature/queue-timeout -t textshuttle/pytorch-serve:prio-qt-cpu
+
+# build prio-qt-gpu
+./build_image.sh -bt dev -g -cv cu113 -b feature/queue-timeout -t textshuttle/pytorch-serve:prio-qt-gpu
