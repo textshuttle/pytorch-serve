@@ -136,12 +136,13 @@ public class RestJob extends Job {
          * by external clients.
          */
         if (ctx != null) {
-            MetricAggregator.handleInferenceMetric(
-                    getModelName(), getModelVersion(), getScheduled() - getBegin(), inferTime);
             NettyUtils.sendHttpResponse(ctx, resp, true);
         } else if (responsePromise != null) {
             responsePromise.complete(body);
         }
+
+        MetricAggregator.handleInferenceMetric(
+                getModelName(), getModelVersion(), getScheduled() - getBegin(), inferTime);
 
         logger.debug(
                 "Waiting time ns: {}, Backend time ns: {}",

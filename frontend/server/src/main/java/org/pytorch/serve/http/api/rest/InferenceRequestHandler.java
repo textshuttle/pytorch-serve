@@ -21,7 +21,6 @@ import org.pytorch.serve.http.BadRequestException;
 import org.pytorch.serve.http.HttpRequestHandlerChain;
 import org.pytorch.serve.http.ResourceNotFoundException;
 import org.pytorch.serve.http.StatusResponse;
-import org.pytorch.serve.metrics.api.MetricAggregator;
 import org.pytorch.serve.openapi.OpenApiUtils;
 import org.pytorch.serve.servingsdk.ModelServerEndpoint;
 import org.pytorch.serve.util.ApiUtils;
@@ -254,8 +253,6 @@ public class InferenceRequestHandler extends HttpRequestHandlerChain {
             NettyUtils.sendJsonResponse(ctx, resp);
             return;
         }
-
-        MetricAggregator.handleInferenceMetric(modelName, modelVersion);
         ApiUtils.addRESTInferenceJob(ctx, modelName, modelVersion, input);
     }
 

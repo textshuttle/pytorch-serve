@@ -25,19 +25,19 @@ public final class PrometheusMetricManager {
                 Counter.build()
                         .name("ts_inference_latency_microseconds")
                         .labelNames(metricsLabels)
-                        .help("Cumulative inference duration in microseconds")
+                        .help("Cumulative inference duration in microseconds.")
                         .register();
         queueLatency =
                 Counter.build()
                         .name("ts_queue_latency_microseconds")
                         .labelNames(metricsLabels)
-                        .help("Cumulative queue duration in microseconds")
+                        .help("Cumulative queue duration in microseconds.")
                         .register();
         queueRequestCount =
                 Gauge.build()
                         .name("ts_queue_requests_total")
                         .labelNames(metricsLabels)
-                        .help("Current queue inference request count")
+                        .help("Current queue inference request count.")
                         .register();
     }
 

@@ -14,6 +14,7 @@ import org.pytorch.serve.grpcimpl.ManagementImpl;
 import org.pytorch.serve.http.messages.DescribeModelResponse;
 import org.pytorch.serve.metrics.Dimension;
 import org.pytorch.serve.metrics.Metric;
+import org.pytorch.serve.metrics.api.MetricAggregator;
 import org.pytorch.serve.util.ApiUtils;
 import org.pytorch.serve.util.ConfigManager;
 import org.pytorch.serve.util.GRPCUtils;
@@ -65,6 +66,10 @@ public class GRPCJob extends Job {
                     PredictionResponse.newBuilder().setPrediction(output).build();
             predictionResponseObserver.onNext(reply);
             predictionResponseObserver.onCompleted();
+
+            long inferTime = System.nanoTime() - getBegin();
+            MetricAggregator.handleInferenceMetric(
+                    getModelName(), getModelVersion(), getScheduled() - getBegin(), inferTime);
 
             logger.debug(
                     "Waiting time ns: {}, Backend time ns: {}",
