@@ -1,6 +1,7 @@
 package org.pytorch.serve.metrics.format.prometheous;
 
 import io.prometheus.client.Counter;
+import io.prometheus.client.Gauge;
 import java.util.UUID;
 
 public final class PrometheusMetricManager {
@@ -10,6 +11,7 @@ public final class PrometheusMetricManager {
     private Counter inferRequestCount;
     private Counter inferLatency;
     private Counter queueLatency;
+    private Gauge queueRequestCount;
 
     private PrometheusMetricManager() {
         String[] metricsLabels = {"uuid", "model_name", "model_version"};
@@ -30,6 +32,12 @@ public final class PrometheusMetricManager {
                         .name("ts_queue_latency_microseconds")
                         .labelNames(metricsLabels)
                         .help("Cumulative queue duration in microseconds")
+                        .register();
+        queueRequestCount =
+                Gauge.build()
+                        .name("ts_queue_requests_total")
+                        .labelNames(metricsLabels)
+                        .help("Current queue inference request count")
                         .register();
     }
 
@@ -77,5 +85,30 @@ public final class PrometheusMetricManager {
         inferRequestCount
                 .labels(METRICS_UUID, modelName, getOrDefaultModelVersion(modelVersion))
                 .inc();
+    }
+
+
+    /**
+     * Counts a valid inference request that has been added to a queue
+     *
+     * @param modelName name of the model
+     * @param modelVersion version of the model
+     */
+    public void incQueueCount(String modelName, String modelVersion) {
+        queueRequestCount
+                .labels(METRICS_UUID, modelName, getOrDefaultModelVersion(modelVersion))
+                .inc();
+    }
+
+    /**
+     * Counts a valid inference request that has been removed from a queue
+     *
+     * @param modelName name of the model
+     * @param modelVersion version of the model
+     */
+    public void decQueueCount(String modelName, String modelVersion) {
+        queueRequestCount
+                .labels(METRICS_UUID, modelName, getOrDefaultModelVersion(modelVersion))
+                .dec();
     }
 }

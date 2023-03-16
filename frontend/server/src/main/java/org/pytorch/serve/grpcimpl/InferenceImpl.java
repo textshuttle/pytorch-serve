@@ -92,7 +92,6 @@ public class InferenceImpl extends InferenceAPIsServiceImplBase {
                     new InputParameter(entry.getKey(), entry.getValue().toByteArray()));
         }
 
-        MetricAggregator.handleInferenceMetric(modelName, modelVersion);
         Job job =
                 new GRPCJob(
                         responseObserver,
@@ -109,6 +108,8 @@ public class InferenceImpl extends InferenceAPIsServiceImplBase {
                 InternalServerException e = new InternalServerException(responseMessage);
                 sendErrorResponse(
                         responseObserver, Status.INTERNAL, e, "InternalServerException.()");
+            } else {
+                MetricAggregator.handleInferenceMetric(modelName, modelVersion);
             }
         } catch (ModelNotFoundException | ModelVersionNotFoundException e) {
             sendErrorResponse(responseObserver, Status.INTERNAL, e, null);

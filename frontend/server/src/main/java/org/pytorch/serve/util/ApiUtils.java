@@ -30,6 +30,7 @@ import org.pytorch.serve.http.messages.ListModelsResponse;
 import org.pytorch.serve.http.messages.RegisterModelRequest;
 import org.pytorch.serve.job.RestJob;
 import org.pytorch.serve.snapshot.SnapshotManager;
+import org.pytorch.serve.metrics.api.MetricAggregator;
 import org.pytorch.serve.util.messages.RequestInput;
 import org.pytorch.serve.util.messages.WorkerCommands;
 import org.pytorch.serve.wlm.Model;
@@ -397,6 +398,8 @@ public final class ApiUtils {
             int priority = job.getPriority();
             String responseMessage = getInferenceErrorResponseMessage(modelName, version, priority);
             throw new ServiceUnavailableException(responseMessage);
+        } else {
+            MetricAggregator.handleInferenceMetric(modelName, version);
         }
         return job;
     }

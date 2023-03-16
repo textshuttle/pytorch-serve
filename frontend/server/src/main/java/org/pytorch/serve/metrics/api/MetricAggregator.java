@@ -7,14 +7,18 @@ public final class MetricAggregator {
 
     private MetricAggregator() {}
 
+    // Is executed upon successful Job insertion in queue
     public static void handleInferenceMetric(final String modelName, final String modelVersion) {
         ConfigManager configMgr = ConfigManager.getInstance();
         if (configMgr.isMetricApiEnable()
                 && configMgr.getMetricsFormat().equals(ConfigManager.METRIC_FORMAT_PROMETHEUS)) {
-            PrometheusMetricManager.getInstance().incInferCount(modelName, modelVersion);
+            PrometheusMetricManager metrics = PrometheusMetricManager.getInstance();
+            metrics.incInferCount(modelName, modelVersion);
+            metrics.incQueueCount(modelName, modelVersion);
         }
     }
 
+    // Is executed upon successful Job completion
     public static void handleInferenceMetric(
             final String modelName, final String modelVersion, long timeInQueue, long inferTime) {
         ConfigManager configMgr = ConfigManager.getInstance();
@@ -23,6 +27,7 @@ public final class MetricAggregator {
             PrometheusMetricManager metrics = PrometheusMetricManager.getInstance();
             metrics.incInferLatency(inferTime, modelName, modelVersion);
             metrics.incQueueLatency(timeInQueue, modelName, modelVersion);
+            metrics.decQueueCount(modelName, modelVersion);
         }
     }
 }
