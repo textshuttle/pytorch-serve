@@ -543,7 +543,7 @@ public class WorkerThread implements Runnable {
             ++backoffIdx;
         }
         this.gpuId = gpuManager.getGPU(this.workerId);
-        
+
         manager.getScheduler()
                 .schedule(() -> manager.submitTask(this), BACK_OFF[backoffIdx], TimeUnit.SECONDS);
         logger.info("Retry worker: {} in {} seconds.", workerId, BACK_OFF[backoffIdx]);
