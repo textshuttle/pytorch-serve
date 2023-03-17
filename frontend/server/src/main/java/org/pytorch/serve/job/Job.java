@@ -13,7 +13,7 @@ public abstract class Job implements Prioritisable {
     private String modelVersion;
     private WorkerCommands cmd; // Else its data msg or inf requests
     private RequestInput input;
-    private int priority;
+    private String priority;
     private long begin;
     private long scheduled;
 
@@ -28,19 +28,14 @@ public abstract class Job implements Prioritisable {
             input.updateHeaders(TS_STREAM_NEXT, "true");
         }
 
-        Map<String, String> headers = input.getHeaders();
-        if (headers.containsKey("x-ts-priority")) {
-            this.priority = Integer.parseInt(headers.get("x-ts-priority"));
-        } else {
-            this.priority = 0;
-        }
+        this.priority = input.getHeaders().getOrDefault("x-ts-priority", "max");
     }
 
-    public int getPriority() {
+    public String getPriority() {
         return this.priority;
     }
 
-    public void setPriority(int priority) {
+    public void setPriority(String priority) {
         this.priority = priority;
     }
 

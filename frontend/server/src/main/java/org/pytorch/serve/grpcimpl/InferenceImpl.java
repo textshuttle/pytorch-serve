@@ -125,6 +125,7 @@ public class InferenceImpl extends InferenceAPIsServiceImplBase {
         String requestId = UUID.randomUUID().toString();
         RequestInput inputData = new RequestInput(requestId);
         try {
+<<<<<<< HEAD
             ModelManager modelManager = ModelManager.getInstance();
             Model model = modelManager.getModel(modelName, modelVersion);
             if (model == null) {

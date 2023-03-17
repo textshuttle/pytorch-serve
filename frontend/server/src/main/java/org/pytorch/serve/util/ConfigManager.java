@@ -64,7 +64,7 @@ public final class ConfigManager {
     private static final String TS_NUMBER_OF_NETTY_THREADS = "number_of_netty_threads";
     private static final String TS_NETTY_CLIENT_THREADS = "netty_client_threads";
     private static final String TS_JOB_QUEUE_SIZE = "job_queue_size";
-    private static final String TS_NUMBER_OF_PRIORITIES = "n_priorities";
+    private static final String TS_HIGH_PRIORITY_PROBABILITY = "high_prio_prob";
     private static final String TS_NUMBER_OF_GPU = "number_of_gpu";
     private static final String TS_MIN_FREE_GPU_MEMORY = "min_free_gpu_memory";
     private static final String TS_MAX_SHARE_GPU_FAILURES = "max_share_gpu_failures";
@@ -363,8 +363,8 @@ public final class ConfigManager {
         return getIntProperty(TS_JOB_QUEUE_SIZE, 100);
     }
 
-    public int getNumberOfPriorities() {
-        return getIntProperty(TS_NUMBER_OF_PRIORITIES, 1);
+    public float getHighPrioProb() {
+        return getFloatProperty(TS_HIGH_PRIORITY_PROBABILITY, 0.67f);
     }
 
     public int getNumberOfGpu() {

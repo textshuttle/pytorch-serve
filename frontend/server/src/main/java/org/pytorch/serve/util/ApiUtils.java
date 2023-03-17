@@ -424,7 +424,7 @@ public final class ApiUtils {
             throws ModelNotFoundException, ModelVersionNotFoundException {
         RestJob job = new RestJob(ctx, modelName, version, WorkerCommands.PREDICT, input);
         if (!ModelManager.getInstance().addJob(job)) {
-            int priority = job.getPriority();
+            String priority = job.getPriority();
             String responseMessage = getInferenceErrorResponseMessage(modelName, version, priority);
             throw new ServiceUnavailableException(responseMessage);
         }
@@ -432,14 +432,14 @@ public final class ApiUtils {
     }
 
     @SuppressWarnings("PMD")
-    public static String getInferenceErrorResponseMessage(String modelName, String modelVersion, int jobPriority) {
+    public static String getInferenceErrorResponseMessage(String modelName, String modelVersion, String jobPriority) {
         String responseMessage = "Model: " + modelName + "\n";
 
         if (modelVersion != null) {
             responseMessage += "Version: " + modelVersion + "\n";
         }
 
-        responseMessage += "Priority: " + String.valueOf(jobPriority) + "\n";
+        responseMessage += "Priority: " + jobPriority + "\n";
 
         responseMessage +=
                 "Reason: queue full";
