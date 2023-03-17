@@ -26,8 +26,8 @@ public class Session {
         }
 
         HttpHeaders headers = request.headers();
-        if (headers.contains("X-TS-Request-ID")) {
-            requestId = headers.getAsString("X-TS-Request-ID");
+        if (headers.contains("x-request-id")) {
+            requestId = headers.getAsString("x-request-id");
         } else {
             requestId = UUID.randomUUID().toString();
         }
