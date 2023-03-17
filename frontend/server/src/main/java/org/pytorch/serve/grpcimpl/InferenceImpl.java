@@ -103,7 +103,7 @@ public class InferenceImpl extends InferenceAPIsServiceImplBase {
 
         try {
             if (!ModelManager.getInstance().addJob(job)) {
-                int priority = job.getPriority();
+                String priority = job.getPriority();
                 String responseMessage =
                         ApiUtils.getInferenceErrorResponseMessage(modelName, modelVersion, priority);
                 InternalServerException e = new InternalServerException(responseMessage);

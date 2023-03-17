@@ -8,6 +8,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.Enumeration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,70 +20,52 @@ public class PriorityLinkedBlockingDeque<T extends Prioritisable> {
     final ReentrantLock lock = new ReentrantLock();
     private final Condition notEmpty = lock.newCondition();
 
-    private int nPriorities;
-    private int sumPriorityWeights;
-    private int[] weightedPriorityMap;
-    private ConcurrentHashMap<Integer, LinkedBlockingDeque<T>> priorityDeques;
+    private int queueSize;
+    private float highPrioProb;
+    private ConcurrentHashMap<String, LinkedBlockingDeque<T>> priorityDeques;
 
-    public PriorityLinkedBlockingDeque(int nPriorities, int queueSize) {
+    public PriorityLinkedBlockingDeque(int queueSize, float highPrioProb) {
 
-        this.nPriorities = nPriorities;
-        this.priorityDeques = new ConcurrentHashMap<Integer, LinkedBlockingDeque<T>>();
+        this.queueSize = queueSize;
+        this.highPrioProb = highPrioProb;
+        this.priorityDeques = new ConcurrentHashMap<String, LinkedBlockingDeque<T>>();
 
-        // note: the weight calculation logic may be adapted to the user's needs
-        // sum of 0 + 1 + 2 + ... + nPriorities - 1 via triangular sum
-        this.sumPriorityWeights = ((this.nPriorities - 1) * this.nPriorities) / 2;
-        this.weightedPriorityMap = new int[sumPriorityWeights];
+        // initialize priority deques
+        this.priorityDeques.put("max", new LinkedBlockingDeque<T>(queueSize));
+        this.priorityDeques.put("high", new LinkedBlockingDeque<T>(queueSize));
+        this.priorityDeques.put("low", new LinkedBlockingDeque<T>(queueSize));
 
-        // initialize priority deques and weight map
-        int keyStart = 0;
-        for (int priority = 0; priority < this.nPriorities; priority++) {
-            this.priorityDeques.put(priority, new LinkedBlockingDeque<T>(queueSize));
-            if (priority > 0) {
-                // priority weights are inverse priority values for now
-                int priorityWeight = this.nPriorities - priority;
-                for (int key = keyStart; key < keyStart + priorityWeight; key++) {
-                    this.weightedPriorityMap[key] = priority;
-                }
-                keyStart += priorityWeight;
-            }
-        }
     }
 
     private LinkedBlockingDeque<T> getDequeForExtraction() {
 
-        // always select deque 0 first if non-empty
-        if (this.nPriorities == 1 || !this.priorityDeques.get(0).isEmpty()) {
-            return this.priorityDeques.get(0);
+        // always select deque max first if non-empty
+        if (!this.priorityDeques.get("max").isEmpty()) {
+            return this.priorityDeques.get("max");
         }
 
-        // sample according to weight map
-        int randInt = ThreadLocalRandom.current().nextInt(sumPriorityWeights);
-        int randPriority = this.weightedPriorityMap[randInt];
-        LinkedBlockingDeque<T> dequeForExtraction = this.priorityDeques.get(randPriority);
-
-        // if sampled deque is empty, scan deques according to priority
-        if (dequeForExtraction.isEmpty()) {
-            for (int priority = 1; priority < this.nPriorities; priority++) {
-                LinkedBlockingDeque<T> priorityDeque = this.priorityDeques.get(priority);
-                if (!priorityDeque.isEmpty()) {
-                    return priorityDeque;
-                }
+        // return random deque unless it is empty and the other is non-empty
+        if (ThreadLocalRandom.current().nextFloat() < this.highPrioProb) {
+            if (this.priorityDeques.get("high").isEmpty() && !this.priorityDeques.get("low").isEmpty()) {
+                return this.priorityDeques.get("low");
             }
+            return this.priorityDeques.get("high");
+        } else {
+            if (this.priorityDeques.get("low").isEmpty() && !this.priorityDeques.get("high").isEmpty()) {
+                return this.priorityDeques.get("high");
+            }
+            return this.priorityDeques.get("low");
         }
-        return dequeForExtraction;
     }
 
     private LinkedBlockingDeque<T> getDequeForInsertion(T p) {
-        int priority = p.getPriority();
+        String priority = p.getPriority();
         LinkedBlockingDeque<T> dequeForInsertion = this.priorityDeques.get(priority);
 
         if (dequeForInsertion == null) {
-            logger.warn("Priority value "  + String.valueOf(priority) + " not valid, setting to highest valid priority value " 
-                + String.valueOf(this.nPriorities - 1) + ".");
-            int newPriority = this.nPriorities - 1;
-            p.setPriority(newPriority);
-            dequeForInsertion = this.priorityDeques.get(newPriority);
+            logger.warn("Priority value '" + priority + "' not valid, setting to 'low'.");
+            p.setPriority("low");
+            dequeForInsertion = this.priorityDeques.get("low");
         }
 
         return dequeForInsertion;
@@ -98,9 +81,9 @@ public class PriorityLinkedBlockingDeque<T extends Prioritisable> {
     }
 
     public boolean isEmpty() {
+        // return true iff all deques are empty
         Function<LinkedBlockingDeque<T>, Boolean> getIsEmpty = (LinkedBlockingDeque<T> deque) -> deque.isEmpty();
         BiFunction<Boolean, Boolean, Boolean> logicalAnd = (Boolean a, Boolean b) -> a && b;
-        // return true iff all deques are empty
         return this.priorityDeques.reduceValues(Long.MAX_VALUE, getIsEmpty, logicalAnd);
     }
 
