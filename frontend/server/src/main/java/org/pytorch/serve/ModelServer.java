@@ -49,6 +49,7 @@ import org.pytorch.serve.snapshot.SnapshotManager;
 import org.pytorch.serve.util.ConfigManager;
 import org.pytorch.serve.util.Connector;
 import org.pytorch.serve.util.ConnectorType;
+import org.pytorch.serve.util.GPUManager;
 import org.pytorch.serve.util.ServerGroups;
 import org.pytorch.serve.wlm.Model;
 import org.pytorch.serve.wlm.ModelManager;
@@ -66,11 +67,13 @@ public class ModelServer {
     private List<ChannelFuture> futures = new ArrayList<>(2);
     private AtomicBoolean stopped = new AtomicBoolean(false);
     private ConfigManager configManager;
+    private GPUManager gpuManager;
     public static final int MAX_RCVBUF_SIZE = 4096;
 
     /** Creates a new {@code ModelServer} instance. */
-    public ModelServer(ConfigManager configManager) {
+    public ModelServer(ConfigManager configManager, GPUManager gpuManager) {
         this.configManager = configManager;
+        this.gpuManager = gpuManager;
         serverGroups = new ServerGroups(configManager);
     }
 
@@ -84,8 +87,10 @@ public class ModelServer {
             ConfigManager configManager = ConfigManager.getInstance();
             PluginsManager.getInstance().initialize();
             MetricCache.init();
+            GPUManager gpuManager = GPUManager.getInstance();
+            gpuManager.init(configManager.getNumberOfGpu());
             InternalLoggerFactory.setDefaultFactory(Slf4JLoggerFactory.INSTANCE);
-            ModelServer modelServer = new ModelServer(configManager);
+            ModelServer modelServer = new ModelServer(configManager, gpuManager);
 
             Runtime.getRuntime()
                     .addShutdownHook(
@@ -145,7 +150,7 @@ public class ModelServer {
     }
 
     private void initModelStore() throws InvalidSnapshotException, IOException {
-        WorkLoadManager wlm = new WorkLoadManager(configManager, serverGroups.getBackendGroup());
+        WorkLoadManager wlm = new WorkLoadManager(configManager, gpuManager, serverGroups.getBackendGroup());
         ModelManager.init(configManager, wlm);
         WorkflowManager.init(configManager);
         SnapshotManager.init(configManager);

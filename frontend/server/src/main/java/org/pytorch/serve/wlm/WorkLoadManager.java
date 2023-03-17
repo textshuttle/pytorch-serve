@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.pytorch.serve.snapshot.SnapshotManager;
 import org.pytorch.serve.util.ConfigManager;
+import org.pytorch.serve.util.GPUManager;
 import org.pytorch.serve.util.OSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,17 +27,24 @@ public class WorkLoadManager {
     private ExecutorService threadPool;
     private ConcurrentHashMap<ModelVersionName, List<WorkerThread>> workers;
     private ConfigManager configManager;
+    private GPUManager gpuManager;
     private EventLoopGroup backendGroup;
     private AtomicInteger port;
     private AtomicInteger distributionPort;
     private AtomicInteger gpuCounter;
 
     public WorkLoadManager(ConfigManager configManager, EventLoopGroup backendGroup) {
+
+    private static final Logger logger = LoggerFactory.getLogger(WorkLoadManager.class);
+
+    public WorkLoadManager(ConfigManager configManager, GPUManager gpuManager, EventLoopGroup backendGroup) {
         this.configManager = configManager;
+        this.gpuManager = gpuManager;
         this.backendGroup = backendGroup;
         this.port = new AtomicInteger(configManager.getInitialWorkerPort());
         this.distributionPort = new AtomicInteger(configManager.getInitialDistributionPort());
         this.gpuCounter = new AtomicInteger(0);
+
         threadPool = Executors.newCachedThreadPool();
         workers = new ConcurrentHashMap<>();
     }
@@ -238,9 +246,11 @@ public class WorkLoadManager {
             WorkerThread thread =
                     new WorkerThread(
                             configManager,
+                            gpuManager,
                             backendGroup,
                             currentPort,
                             gpuId,
+                            configManager.isDebug() ? port.get() : port.getAndIncrement(),
                             model,
                             aggregator,
                             listener);
