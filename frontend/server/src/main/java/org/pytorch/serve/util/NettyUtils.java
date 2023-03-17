@@ -38,7 +38,7 @@ public final class NettyUtils {
 
     private static final Logger logger = LoggerFactory.getLogger("ACCESS_LOG");
 
-    private static final String REQUEST_ID = "x-request-id";
+    private static final String REQUEST_ID = "X-TS-Request-ID";
     private static final AttributeKey<Session> SESSION_KEY = AttributeKey.valueOf("session");
     private static final Dimension DIMENSION = new Dimension("Level", "Host");
     private static final Metric REQUESTS_2_XX =
