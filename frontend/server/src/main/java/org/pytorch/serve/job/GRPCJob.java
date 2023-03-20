@@ -111,12 +111,12 @@ public class GRPCJob extends Job {
                             new Metric(
                                     "RequestPriority",
                                     String.valueOf(this.getPriority()),
-                                    "int",
+                                    "category",
                                     ConfigManager.getInstance().getHostName(),
                                     DIMENSION));
                 }
             }
-
+            
         } else if (this.getCmd() == WorkerCommands.DESCRIBE) {
             try {
                 ArrayList<DescribeModelResponse> respList =

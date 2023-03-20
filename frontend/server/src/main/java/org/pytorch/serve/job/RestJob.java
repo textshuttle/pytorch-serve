@@ -185,7 +185,7 @@ public class RestJob extends Job {
         } else if (responsePromise != null) {
             responsePromise.complete(body);
         }
-
+        
         if (numStreams <= 0) {
             if (this.inferenceLatencyMetric != null) {
                 try {
@@ -238,7 +238,7 @@ public class RestJob extends Job {
                         new Metric(
                                 "RequestPriority",
                                 String.valueOf(this.getPriority()),
-                                "int",
+                                "category",
                                 ConfigManager.getInstance().getHostName(),
                                 DIMENSION));
             }
