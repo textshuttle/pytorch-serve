@@ -163,8 +163,8 @@ public class RestJob extends Job {
             "{}",
             new Metric(
                     "RequestPriority",
-                    String.valueOf(this.getPriority()),
-                    "int",
+                    this.getPriority().toString(),
+                    "category",
                     ConfigManager.getInstance().getHostName(),
                     DIMENSION));
     }
