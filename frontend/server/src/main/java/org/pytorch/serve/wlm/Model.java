@@ -40,7 +40,7 @@ public class Model {
     private ReentrantLock lock;
     private int responseTimeout;
     private int queueSize;
-    private int nPriorities;
+    private float highPrioProb;
     private ModelVersionName modelVersionName;
 
     private boolean isWorkflowModel;
@@ -51,15 +51,15 @@ public class Model {
     // Per worker thread job queue. This separates out the control queue from data queue
     private ConcurrentMap<String, PriorityLinkedBlockingDeque<Job>> jobsDb;
 
-    public Model(ModelArchive modelArchive, int queueSize, int nPriorities) {
+    public Model(ModelArchive modelArchive, int queueSize, float highPrioProb) {
         this.modelArchive = modelArchive;
         this.queueSize = queueSize;
-        this.nPriorities = nPriorities;
+        this.highPrioProb = highPrioProb;
         batchSize = 1;
         maxBatchDelay = 100;
         jobsDb = new ConcurrentHashMap<>();
         // Always have a queue for data
-        jobsDb.putIfAbsent(DEFAULT_DATA_QUEUE, new PriorityLinkedBlockingDeque<>(this.nPriorities, this.queueSize));
+        jobsDb.putIfAbsent(DEFAULT_DATA_QUEUE, new PriorityLinkedBlockingDeque<>(this.queueSize, this.highPrioProb));
         failedInfReqs = new AtomicInteger(0);
         lock = new ReentrantLock();
         modelVersionName =
@@ -156,7 +156,7 @@ public class Model {
     public void addJob(String threadId, Job job) {
         PriorityLinkedBlockingDeque<Job> blockingDeque = jobsDb.get(threadId);
         if (blockingDeque == null) {
-            blockingDeque = new PriorityLinkedBlockingDeque<>(this.nPriorities, this.queueSize);
+            blockingDeque = new PriorityLinkedBlockingDeque<>(this.queueSize, this.highPrioProb);
             jobsDb.put(threadId, blockingDeque);
         }
         blockingDeque.offer(job);

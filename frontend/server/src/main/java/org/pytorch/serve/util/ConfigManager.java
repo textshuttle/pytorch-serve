@@ -64,7 +64,7 @@ public final class ConfigManager {
     private static final String TS_NUMBER_OF_NETTY_THREADS = "number_of_netty_threads";
     private static final String TS_NETTY_CLIENT_THREADS = "netty_client_threads";
     private static final String TS_JOB_QUEUE_SIZE = "job_queue_size";
-    private static final String TS_NUMBER_OF_PRIORITIES = "n_priorities";
+    private static final String TS_HIGH_PRIORITY_PROBABILITY = "high_prio_prob";
     private static final String TS_NUMBER_OF_GPU = "number_of_gpu";
     private static final String TS_METRICS_CONFIG = "metrics_config";
 
@@ -362,8 +362,13 @@ public final class ConfigManager {
         return getIntProperty(TS_JOB_QUEUE_SIZE, 100);
     }
 
-    public int getNumberOfPriorities() {
-        return getIntProperty(TS_NUMBER_OF_PRIORITIES, 1);
+    public float getHighPrioProb() throws IllegalArgumentException {
+        float highPrioProb = getFloatProperty(TS_HIGH_PRIORITY_PROBABILITY, 0.67f);
+        if (highPrioProb < 0.00f || highPrioProb > 1.00f){
+            throw new IllegalArgumentException("highPrioProb " + String.valueOf(highPrioProb) + 
+                " is not a valid probability!");
+        }
+        return highPrioProb;
     }
 
     public int getNumberOfGpu() {
@@ -683,6 +688,14 @@ public final class ConfigManager {
             return def;
         }
         return Integer.parseInt(value);
+    }
+
+    private float getFloatProperty(String key, float def) {
+        String value = prop.getProperty(key);
+        if (value == null) {
+            return def;
+        }
+        return Float.parseFloat(value);
     }
 
     public int getDefaultResponseTimeout() {
