@@ -37,22 +37,27 @@ public class PriorityLinkedBlockingDeque<T extends Prioritisable> {
     private LinkedBlockingDeque<T> getDequeForExtraction() {
 
         // always select deque max first if non-empty
-        if (!this.priorityDeques.get("max").isEmpty()) {
-            return this.priorityDeques.get("max");
+        if (!this.priorityDeques.get(Priority.MAX).isEmpty()) {
+            return this.priorityDeques.get(Priority.MAX);
         }
 
-        // return random deque unless it is empty and the other is non-empty
-        if (ThreadLocalRandom.current().nextFloat() < this.highPrioProb) {
-            if (this.priorityDeques.get("high").isEmpty() && !this.priorityDeques.get("low").isEmpty()) {
-                return this.priorityDeques.get("low");
+        boolean highNonEmpty = !this.priorityDeques.get(Priority.HIGH).isEmpty();
+
+        // if both high and low are non-empty, make random selection
+        if (highNonEmpty && !this.priorityDeques.get(Priority.LOW).isEmpty()) {
+            if (ThreadLocalRandom.current().nextFloat() < this.highPrioProb) {
+                return this.priorityDeques.get(Priority.HIGH);
+            } else {
+                return this.priorityDeques.get(Priority.LOW);
             }
-            return this.priorityDeques.get("high");
-        } else {
-            if (this.priorityDeques.get("low").isEmpty() && !this.priorityDeques.get("high").isEmpty()) {
-                return this.priorityDeques.get("high");
-            }
-            return this.priorityDeques.get("low");
+        // if only high is non-empty, return high
+        } else if (highNonEmpty) {
+            return this.priorityDeques.get(Priority.HIGH);
         }
+
+        // if both empty or only low non-empty, return low
+        return this.priorityDeques.get(Priority.LOW);
+
     }
 
     private LinkedBlockingDeque<T> getDequeForInsertion(T p) {
