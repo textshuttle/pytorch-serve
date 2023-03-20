@@ -74,9 +74,7 @@ public class PriorityLinkedBlockingDeque<T extends Prioritisable> {
 
     public boolean isEmpty() {
         // return true iff all deques are empty
-        Function<LinkedBlockingDeque<T>, Boolean> getIsEmpty = (LinkedBlockingDeque<T> deque) -> deque.isEmpty();
-        BiFunction<Boolean, Boolean, Boolean> logicalAnd = (Boolean a, Boolean b) -> a && b;
-        return this.priorityDeques.reduceValues(Long.MAX_VALUE, getIsEmpty, logicalAnd);
+        return this.priorityDeques.reduceValues(Long.MAX_VALUE, LinkedBlockingDeque::isEmpty, Boolean::logicalAnd);
     }
 
     public boolean offer(T p) {
