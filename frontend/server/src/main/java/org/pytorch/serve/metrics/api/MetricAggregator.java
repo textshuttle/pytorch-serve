@@ -27,7 +27,7 @@ public final class MetricAggregator {
                 && configMgr.getMetricsFormat().equals(ConfigManager.METRIC_FORMAT_PROMETHEUS)) {
             PrometheusMetricManager metrics = PrometheusMetricManager.getInstance();
             metrics.incInferLatency(inferTime, modelName, modelVersion);
-            metrics.incQueueLatency(timeInQueue, modelName, modelVersion);
+            metrics.incQueueLatency(timeInQueue, modelName, modelVersion, priority);
             metrics.decQueueCount(modelName, modelVersion, priority);
         }
     }

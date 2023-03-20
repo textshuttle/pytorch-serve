@@ -4,7 +4,6 @@ import org.pytorch.serve.util.ConfigManager;
 import org.pytorch.serve.util.Priority;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
-import java.util.HashMap;
 import java.util.UUID;
 
 public final class PrometheusMetricManager {
@@ -14,7 +13,7 @@ public final class PrometheusMetricManager {
     private final Counter inferRequestCount;
     private final Counter inferLatency;
     private final Counter queueLatency;
-    private final HashMap<Priority, Gauge> queueRequestCounts;
+    private final Gauge queueRequestCount;
 
     private PrometheusMetricManager() {
         String[] metricsLabelsNonQueue = {"uuid", "model_name", "model_version"};
@@ -31,22 +30,19 @@ public final class PrometheusMetricManager {
                         .help("Cumulative inference duration in microseconds.")
                         .register();
 
-        String[] metricsLabelsQueue = {"uuid", "model_name", "model_version", "priority"};
+        String[] metricsLabelsQueue = {"uuid", "model_name", "model_version", "priority", "max_queue_size"};
         queueLatency =
                 Counter.build()
                         .name("ts_queue_latency_microseconds")
                         .labelNames(metricsLabelsQueue)
                         .help("Cumulative queue duration in microseconds.")
                         .register();
-        queueRequestCounts = new HashMap<Priority, Gauge> ();
-        for (Priority priority : Priority.values()) { 
-                queueRequestCounts.put(priority, 
-                        Gauge.build()
-                                .name("ts_queue_requests_" + priority.toString().toLowerCase() + "_total")
-                                .labelNames(metricsLabelsQueue)
-                                .help("Current queue inference request count.")
-                                .register());
-        }
+        queueRequestCount =
+                Gauge.build()
+                        .name("ts_queue_requests_total")
+                        .labelNames(metricsLabelsQueue)
+                        .help("Current queue inference request count.")
+                        .register();
     }
 
     private static String getOrDefaultModelVersion(String modelVersion) {
@@ -77,10 +73,10 @@ public final class PrometheusMetricManager {
      * @param modelName name of the model
      * @param modelVersion version of the model
      */
-    public void incQueueLatency(long queueTime, String modelName, String modelVersion) {
+    public void incQueueLatency(long queueTime, String modelName, String modelVersion, Priority priority) {
         int queueSize = ConfigManager.getInstance().getJobQueueSize();
         queueLatency
-                .labels(METRICS_UUID, modelName, getOrDefaultModelVersion(modelVersion), String.valueOf(queueSize))
+                .labels(METRICS_UUID, modelName, getOrDefaultModelVersion(modelVersion), priority.toString(), String.valueOf(queueSize))
                 .inc(queueTime / 1000.0);
     }
 
@@ -105,8 +101,8 @@ public final class PrometheusMetricManager {
      */
     public void incQueueCount(String modelName, String modelVersion, Priority priority) {
         int queueSize = ConfigManager.getInstance().getJobQueueSize();
-        queueRequestCounts.get(priority)
-                .labels(METRICS_UUID, modelName, getOrDefaultModelVersion(modelVersion), String.valueOf(queueSize))
+        queueRequestCount
+                .labels(METRICS_UUID, modelName, getOrDefaultModelVersion(modelVersion), priority.toString(), String.valueOf(queueSize))
                 .inc();
     }
 
@@ -118,8 +114,8 @@ public final class PrometheusMetricManager {
      */
     public void decQueueCount(String modelName, String modelVersion, Priority priority) {
         int queueSize = ConfigManager.getInstance().getJobQueueSize();
-        queueRequestCounts.get(priority)
-                .labels(METRICS_UUID, modelName, getOrDefaultModelVersion(modelVersion), String.valueOf(queueSize))
+        queueRequestCount
+                .labels(METRICS_UUID, modelName, getOrDefaultModelVersion(modelVersion), priority.toString(), String.valueOf(queueSize))
                 .dec();
     }
 }
