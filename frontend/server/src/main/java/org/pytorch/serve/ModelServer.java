@@ -87,7 +87,7 @@ public class ModelServer {
             ConfigManager configManager = ConfigManager.getInstance();
             PluginsManager.getInstance().initialize();
             MetricCache.init();
-            GPUManager.init(configManager.getNumberOfGpu());
+            GPUManager.init(configManager);
             GPUManager gpuManager = GPUManager.getInstance();
             InternalLoggerFactory.setDefaultFactory(Slf4JLoggerFactory.INSTANCE);
             ModelServer modelServer = new ModelServer(configManager, gpuManager);

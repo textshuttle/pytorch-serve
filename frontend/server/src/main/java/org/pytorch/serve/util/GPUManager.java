@@ -29,12 +29,10 @@ public final class GPUManager {
     private AtomicInteger[] freeMemory;
     private ConcurrentHashMap<String, Integer> workerIds;
 
-    private GPUManager(int nGPUs) {
+    private GPUManager(int nGPUs, int minFreeMemory, float maxShareFailures) {
         this.nGPUs = nGPUs;
-
-        // TODO pass these through as parameters
-        this.minFreeMemory = 100;
-        this.maxShareFailures = 0.5f;
+        this.minFreeMemory = minFreeMemory;
+        this.maxShareFailures = maxShareFailures;
 
         if (nGPUs > 0) {
             this.workerIds = new ConcurrentHashMap<String, Integer> ();
@@ -82,8 +80,11 @@ public final class GPUManager {
         return -1;
     }
 
-    public static void init(int nGPUs) {
-        instance = new GPUManager(nGPUs);
+    public static void init(ConfigManager configManager) {
+        int nGPUs = configManager.getNumberOfGpu();
+        int minFreeMemory = configManager.getMinFreeGpuMemory();
+        float maxShareFailures = configManager.getMaxShareGpuFailures();
+        instance = new GPUManager(nGPUs, minFreeMemory, maxShareFailures);
     }
 
     public static GPUManager getInstance() {
@@ -119,6 +120,9 @@ public final class GPUManager {
                 float shareFailures = (float) this.nFailures[i].intValue() / (float) nFailuresSum;
                 if (shareFailures < this.maxShareFailures) {
                     eligibleIdFreeMems.put(i, this.freeMemory[i].intValue());
+                } else {
+                    logger.warn("GPU ID " + String.valueOf(i) + " deemed ineligible since it accounts for at least " + 
+                        String.valueOf(this.maxShareFailures) + " of failures");
                 }
             }
         }
