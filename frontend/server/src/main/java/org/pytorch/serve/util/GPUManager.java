@@ -122,27 +122,34 @@ public final class GPUManager {
                 }
             }
         }
-        // get sum of eligible id free memory for prob calculation
-        int eligibleIdFreeMemSum = 0;
-        for (Map.Entry<Integer, Integer> entry : eligibleIdFreeMems.entrySet()) {
-            eligibleIdFreeMemSum += entry.getValue();
+        // fork on number of eligible GPUs
+        if (eligibleIdFreeMems.size() == 0) {
+            logger.error("No eligible GPUs available");
+        } else if (eligibleIdFreeMems.size() == 1) {
+            gpuId = eligibleIdFreeMems.keySet().iterator().next();
+        } else {
+            // get sum of eligible id free memory for prob calculation
+            int eligibleIdFreeMemSum = 0;
+            for (Map.Entry<Integer, Integer> entry : eligibleIdFreeMems.entrySet()) {
+                eligibleIdFreeMemSum += entry.getValue();
+            }
+            // store cumulative probabilities in navigable map
+            float cumProb = 0.0f;
+            TreeMap<Float, Integer> cumProbIds = new TreeMap<Float, Integer> ();
+            for (Map.Entry<Integer, Integer> entry : eligibleIdFreeMems.entrySet()) {
+                int i = entry.getKey();
+                int freeMem = entry.getValue();
+                cumProbIds.put(cumProb, i);
+                cumProb += (float) freeMem / (float) eligibleIdFreeMemSum;
+            }
+            // make random selection
+            float randFloat = ThreadLocalRandom.current().nextFloat();
+            gpuId = cumProbIds.ceilingEntry(randFloat).getValue();
+            logger.info("Assigning gpuId " + String.valueOf(gpuId) + 
+                        " with free memory " + String.valueOf(eligibleIdFreeMems.get(gpuId)) + 
+                        " with number of failures " + String.valueOf(this.nFailures[gpuId].intValue()) + 
+                        " to workerId " + workerId);
         }
-        // store cumulative probabilities in navigable map
-        float cumProb = 0.0f;
-        TreeMap<Float, Integer> cumProbIds = new TreeMap<Float, Integer> ();
-        for (Map.Entry<Integer, Integer> entry : eligibleIdFreeMems.entrySet()) {
-            int i = entry.getKey();
-            int freeMem = entry.getValue();
-            cumProbIds.put(cumProb, i);
-            cumProb += (float) freeMem / (float) eligibleIdFreeMemSum;
-        }
-        // make random selection
-        float randFloat = ThreadLocalRandom.current().nextFloat();
-        gpuId = cumProbIds.ceilingEntry(randFloat).getValue();
-        logger.info("Assigning gpuId " + String.valueOf(gpuId) + 
-                    " with free memory " + String.valueOf(eligibleIdFreeMems.get(gpuId)) + 
-                    " with number of failures " + String.valueOf(this.nFailures[gpuId].intValue()) + 
-                    " to workerId " + workerId);
         return gpuId;
     }
 }
