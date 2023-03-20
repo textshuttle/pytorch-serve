@@ -4,8 +4,6 @@ import org.pytorch.serve.util.ConfigManager;
 import org.pytorch.serve.util.Priority;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
-import java.util.Arrays;
-import java.util.List;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -19,24 +17,25 @@ public final class PrometheusMetricManager {
     private final HashMap<Priority, Gauge> queueRequestCounts;
 
     private PrometheusMetricManager() {
-        List<String> metricsLabels = Arrays.asList("uuid", "model_name", "model_version");
+        String[] metricsLabelsNonQueue = {"uuid", "model_name", "model_version"};
         inferRequestCount =
                 Counter.build()
                         .name("ts_inference_requests_total")
-                        .labelNames(metricsLabels.toArray(new String[0]))
+                        .labelNames(metricsLabelsNonQueue)
                         .help("Total number of inference requests.")
                         .register();
         inferLatency =
                 Counter.build()
                         .name("ts_inference_latency_microseconds")
-                        .labelNames(metricsLabels.toArray(new String[0]))
+                        .labelNames(metricsLabelsNonQueue)
                         .help("Cumulative inference duration in microseconds.")
                         .register();
-        metricsLabels.add("priority");
+
+        String[] metricsLabelsQueue = {"uuid", "model_name", "model_version", "priority"};
         queueLatency =
                 Counter.build()
                         .name("ts_queue_latency_microseconds")
-                        .labelNames(metricsLabels.toArray(new String[0]))
+                        .labelNames(metricsLabelsQueue)
                         .help("Cumulative queue duration in microseconds.")
                         .register();
         queueRequestCounts = new HashMap<Priority, Gauge> ();
@@ -44,7 +43,7 @@ public final class PrometheusMetricManager {
                 queueRequestCounts.put(priority, 
                         Gauge.build()
                                 .name("ts_queue_requests_" + priority.toString().toLowerCase() + "_total")
-                                .labelNames(metricsLabels.toArray(new String[0]))
+                                .labelNames(metricsLabelsQueue)
                                 .help("Current queue inference request count.")
                                 .register());
         }
