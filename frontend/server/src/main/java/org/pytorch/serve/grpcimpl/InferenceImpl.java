@@ -125,7 +125,6 @@ public class InferenceImpl extends InferenceAPIsServiceImplBase {
         String requestId = UUID.randomUUID().toString();
         RequestInput inputData = new RequestInput(requestId);
         try {
-<<<<<<< HEAD
             ModelManager modelManager = ModelManager.getInstance();
             Model model = modelManager.getModel(modelName, modelVersion);
             if (model == null) {
@@ -158,7 +157,7 @@ public class InferenceImpl extends InferenceAPIsServiceImplBase {
             Job job = new GRPCJob(responseObserver, modelName, modelVersion, workerCmd, inputData);
 
             if (!modelManager.addJob(job)) {
-                int priority = job.getPriority();
+                String priority = job.getPriority().toString();
                 String responseMessage =
                         ApiUtils.getInferenceErrorResponseMessage(modelName, modelVersion, priority);
                 InternalServerException e = new InternalServerException(responseMessage);

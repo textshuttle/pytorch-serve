@@ -116,7 +116,6 @@ public class GRPCJob extends Job {
                                     DIMENSION));
                 }
             }
-            
         } else if (this.getCmd() == WorkerCommands.DESCRIBE) {
             try {
                 ArrayList<DescribeModelResponse> respList =

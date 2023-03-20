@@ -6,6 +6,7 @@ import java.util.Map;
 import org.pytorch.serve.util.messages.RequestInput;
 import org.pytorch.serve.util.messages.WorkerCommands;
 import org.pytorch.serve.util.Prioritisable;
+import org.pytorch.serve.util.Priority;
 
 public abstract class Job implements Prioritisable {
 
@@ -13,7 +14,7 @@ public abstract class Job implements Prioritisable {
     private String modelVersion;
     private WorkerCommands cmd; // Else its data msg or inf requests
     private RequestInput input;
-    private String priority;
+    private Priority priority;
     private long begin;
     private long scheduled;
 
@@ -28,14 +29,14 @@ public abstract class Job implements Prioritisable {
             input.updateHeaders(TS_STREAM_NEXT, "true");
         }
 
-        this.priority = input.getHeaders().getOrDefault("x-ts-priority", "max");
+        this.priority = Priority.valueOf(input.getHeaders().getOrDefault("x-ts-priority", "MAX").toUpperCase());
     }
 
-    public String getPriority() {
+    public Priority getPriority() {
         return this.priority;
     }
 
-    public void setPriority(String priority) {
+    public void setPriority(Priority priority) {
         this.priority = priority;
     }
 
