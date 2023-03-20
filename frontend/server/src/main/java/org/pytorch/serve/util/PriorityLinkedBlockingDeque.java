@@ -20,13 +20,11 @@ public class PriorityLinkedBlockingDeque<T extends Prioritisable> {
     final ReentrantLock lock = new ReentrantLock();
     private final Condition notEmpty = lock.newCondition();
 
-    private int queueSize;
     private float highPrioProb;
     private ConcurrentHashMap<Priority, LinkedBlockingDeque<T>> priorityDeques;
 
     public PriorityLinkedBlockingDeque(int queueSize, float highPrioProb) {
 
-        this.queueSize = queueSize;
         this.highPrioProb = highPrioProb;
         this.priorityDeques = new ConcurrentHashMap<Priority, LinkedBlockingDeque<T>>();
 
