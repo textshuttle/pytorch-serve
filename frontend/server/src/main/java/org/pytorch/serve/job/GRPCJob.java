@@ -69,7 +69,7 @@ public class GRPCJob extends Job {
 
             long inferTime = System.nanoTime() - getBegin();
             MetricAggregator.handleInferenceMetric(
-                    getModelName(), getModelVersion(), getScheduled() - getBegin(), inferTime);
+                    getModelName(), getModelVersion(), getPriority(), getScheduled() - getBegin(), inferTime);
 
             logger.debug(
                     "Waiting time ns: {}, Backend time ns: {}",

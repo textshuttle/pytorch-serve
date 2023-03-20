@@ -1,7 +1,9 @@
 package org.pytorch.serve.metrics.format.prometheous;
 
+import org.pytorch.serve.util.Priority;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
+import java.util.HashMap;
 import java.util.UUID;
 
 public final class PrometheusMetricManager {
@@ -11,7 +13,7 @@ public final class PrometheusMetricManager {
     private Counter inferRequestCount;
     private Counter inferLatency;
     private Counter queueLatency;
-    private Gauge queueRequestCount;
+    private final HashMap<Priority, Gauge> queueRequestCounts;
 
     private PrometheusMetricManager() {
         String[] metricsLabels = {"uuid", "model_name", "model_version"};
@@ -33,12 +35,15 @@ public final class PrometheusMetricManager {
                         .labelNames(metricsLabels)
                         .help("Cumulative queue duration in microseconds.")
                         .register();
-        queueRequestCount =
-                Gauge.build()
-                        .name("ts_queue_requests_total")
-                        .labelNames(metricsLabels)
-                        .help("Current queue inference request count.")
-                        .register();
+        queueRequestCounts = new HashMap<Priority, Gauge> ();
+        for (Priority priority : Priority.values()) { 
+                queueRequestCounts.put(priority, 
+                        Gauge.build()
+                                .name("ts_queue_requests_total")
+                                .labelNames(metricsLabels)
+                                .help("Current queue inference request count.")
+                                .register());
+        }
     }
 
     private static String getOrDefaultModelVersion(String modelVersion) {
@@ -94,8 +99,8 @@ public final class PrometheusMetricManager {
      * @param modelName name of the model
      * @param modelVersion version of the model
      */
-    public void incQueueCount(String modelName, String modelVersion) {
-        queueRequestCount
+    public void incQueueCount(String modelName, String modelVersion, Priority priority) {
+        queueRequestCounts.get(priority)
                 .labels(METRICS_UUID, modelName, getOrDefaultModelVersion(modelVersion))
                 .inc();
     }
@@ -106,8 +111,8 @@ public final class PrometheusMetricManager {
      * @param modelName name of the model
      * @param modelVersion version of the model
      */
-    public void decQueueCount(String modelName, String modelVersion) {
-        queueRequestCount
+    public void decQueueCount(String modelName, String modelVersion, Priority priority) {
+        queueRequestCounts.get(priority)
                 .labels(METRICS_UUID, modelName, getOrDefaultModelVersion(modelVersion))
                 .dec();
     }

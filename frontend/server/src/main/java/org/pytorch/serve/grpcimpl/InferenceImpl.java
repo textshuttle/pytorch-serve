@@ -109,7 +109,7 @@ public class InferenceImpl extends InferenceAPIsServiceImplBase {
                 sendErrorResponse(
                         responseObserver, Status.INTERNAL, e, "InternalServerException.()");
             } else {
-                MetricAggregator.handleInferenceMetric(modelName, modelVersion);
+                MetricAggregator.handleInferenceMetric(modelName, modelVersion, job.getPriority());
             }
         } catch (ModelNotFoundException | ModelVersionNotFoundException e) {
             sendErrorResponse(responseObserver, Status.INTERNAL, e, null);

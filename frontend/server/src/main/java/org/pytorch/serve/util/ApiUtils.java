@@ -399,7 +399,7 @@ public final class ApiUtils {
             String responseMessage = getInferenceErrorResponseMessage(modelName, version, priority);
             throw new ServiceUnavailableException(responseMessage);
         } else {
-            MetricAggregator.handleInferenceMetric(modelName, version);
+            MetricAggregator.handleInferenceMetric(modelName, version, job.getPriority());
         }
         return job;
     }
