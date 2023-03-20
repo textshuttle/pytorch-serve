@@ -363,8 +363,13 @@ public final class ConfigManager {
         return getIntProperty(TS_JOB_QUEUE_SIZE, 100);
     }
 
-    public float getHighPrioProb() {
-        return getFloatProperty(TS_HIGH_PRIORITY_PROBABILITY, 0.67f);
+    public float getHighPrioProb() throws IllegalArgumentException {
+        float highPrioProb = getFloatProperty(TS_HIGH_PRIORITY_PROBABILITY, 0.67f);
+        if (highPrioProb < 0.00f || highPrioProb > 1.00f){
+            throw new IllegalArgumentException("highPrioProb " + String.valueOf(highPrioProb) + 
+                " is not a valid probability!");
+        }
+        return highPrioProb;
     }
 
     public int getNumberOfGpu() {
