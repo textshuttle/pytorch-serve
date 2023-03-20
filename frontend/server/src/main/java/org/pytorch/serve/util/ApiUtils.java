@@ -394,7 +394,7 @@ public final class ApiUtils {
             throws ModelNotFoundException, ModelVersionNotFoundException {
         RestJob job = new RestJob(ctx, modelName, version, WorkerCommands.PREDICT, input);
         if (!ModelManager.getInstance().addJob(job)) {
-            String priority = job.getPriority();
+            String priority = job.getPriority().toString();
             String responseMessage = getInferenceErrorResponseMessage(modelName, version, priority);
             throw new ServiceUnavailableException(responseMessage);
         }

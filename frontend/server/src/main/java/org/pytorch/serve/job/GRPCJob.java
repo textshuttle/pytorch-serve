@@ -86,7 +86,7 @@ public class GRPCJob extends Job {
                 "{}",
                 new Metric(
                         "RequestPriority",
-                        this.getPriority(),
+                        this.getPriority().toString(),
                         "category",
                         ConfigManager.getInstance().getHostName(),
                         DIMENSION));

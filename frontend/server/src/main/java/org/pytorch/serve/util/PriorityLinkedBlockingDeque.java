@@ -22,19 +22,18 @@ public class PriorityLinkedBlockingDeque<T extends Prioritisable> {
 
     private int queueSize;
     private float highPrioProb;
-    private ConcurrentHashMap<String, LinkedBlockingDeque<T>> priorityDeques;
+    private ConcurrentHashMap<Priority, LinkedBlockingDeque<T>> priorityDeques;
 
     public PriorityLinkedBlockingDeque(int queueSize, float highPrioProb) {
 
         this.queueSize = queueSize;
         this.highPrioProb = highPrioProb;
-        this.priorityDeques = new ConcurrentHashMap<String, LinkedBlockingDeque<T>>();
+        this.priorityDeques = new ConcurrentHashMap<Priority, LinkedBlockingDeque<T>>();
 
         // initialize priority deques
-        this.priorityDeques.put("max", new LinkedBlockingDeque<T>(queueSize));
-        this.priorityDeques.put("high", new LinkedBlockingDeque<T>(queueSize));
-        this.priorityDeques.put("low", new LinkedBlockingDeque<T>(queueSize));
-
+        for (Priority priority : Priority.values()) { 
+            this.priorityDeques.put(priority, new LinkedBlockingDeque<T>(queueSize));
+        }
     }
 
     private LinkedBlockingDeque<T> getDequeForExtraction() {
@@ -59,15 +58,8 @@ public class PriorityLinkedBlockingDeque<T extends Prioritisable> {
     }
 
     private LinkedBlockingDeque<T> getDequeForInsertion(T p) {
-        String priority = p.getPriority();
+        Priority priority = p.getPriority();
         LinkedBlockingDeque<T> dequeForInsertion = this.priorityDeques.get(priority);
-
-        if (dequeForInsertion == null) {
-            logger.warn("Priority value '" + priority + "' not valid, setting to 'low'.");
-            p.setPriority("low");
-            dequeForInsertion = this.priorityDeques.get("low");
-        }
-
         return dequeForInsertion;
     }
 

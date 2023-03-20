@@ -2,7 +2,7 @@ package org.pytorch.serve.util;
 
 public interface Prioritisable {
 
-    public String getPriority();
-    public void setPriority(String priority);
+    public Priority getPriority();
+    public void setPriority(Priority priority);
 
 }
