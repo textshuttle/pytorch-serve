@@ -72,7 +72,7 @@ public final class GPUManager {
                 return Integer.parseInt(line);
             }
         } catch (Exception e) {
-            logger.error("Exception raised : " + e.toString());
+            logger.error("An exception occurred when querying for free gpu memory", e);
         }
 
         return -1;
