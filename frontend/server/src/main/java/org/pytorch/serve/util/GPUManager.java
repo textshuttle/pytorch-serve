@@ -20,9 +20,9 @@ public final class GPUManager {
 
     private static GPUManager instance;
 
-    private int nGPUs;
-    private int minFreeMemory;
-    private float maxShareFailures;
+    private final int nGPUs;
+    private final int minFreeMemory;
+    private final float maxShareFailures;
     private AtomicInteger[] nFailures;
     private AtomicInteger[] freeMemory;
     private ConcurrentHashMap<String, Integer> workerIds;
