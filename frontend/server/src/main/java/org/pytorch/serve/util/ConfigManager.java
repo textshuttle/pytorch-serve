@@ -66,6 +66,8 @@ public final class ConfigManager {
     private static final String TS_JOB_QUEUE_SIZE = "job_queue_size";
     private static final String TS_HIGH_PRIORITY_PROBABILITY = "high_prio_prob";
     private static final String TS_NUMBER_OF_GPU = "number_of_gpu";
+    private static final String TS_MIN_FREE_GPU_MEMORY = "min_free_gpu_memory";
+    private static final String TS_MAX_SHARE_GPU_FAILURES = "max_share_gpu_failures";
     private static final String TS_METRICS_CONFIG = "metrics_config";
 
     // IPEX config option that can be set at config.properties
@@ -373,6 +375,14 @@ public final class ConfigManager {
 
     public int getNumberOfGpu() {
         return getIntProperty(TS_NUMBER_OF_GPU, 0);
+    }
+
+    public int getMinFreeGpuMemory() {
+        return getIntProperty(TS_MIN_FREE_GPU_MEMORY, 4096);
+    }
+
+    public float getMaxShareGpuFailures() {
+        return getFloatProperty(TS_MAX_SHARE_GPU_FAILURES, 0.90f);
     }
 
     public String getMetricsConfigPath() {
