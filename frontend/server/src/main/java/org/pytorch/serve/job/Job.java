@@ -3,13 +3,16 @@ package org.pytorch.serve.job;
 import java.util.Map;
 import org.pytorch.serve.util.messages.RequestInput;
 import org.pytorch.serve.util.messages.WorkerCommands;
+import org.pytorch.serve.util.Prioritisable;
+import org.pytorch.serve.util.Priority;
 
-public abstract class Job {
+public abstract class Job implements Prioritisable {
 
     private String modelName;
     private String modelVersion;
     private WorkerCommands cmd; // Else its data msg or inf requests
     private RequestInput input;
+    private Priority priority;
     private long begin;
     private long scheduled;
 
@@ -20,6 +23,15 @@ public abstract class Job {
         this.modelVersion = version;
         begin = System.nanoTime();
         scheduled = begin;
+        this.priority = Priority.valueOf(input.getHeaders().getOrDefault("x-ts-priority", "MAX").toUpperCase());
+    }
+
+    public Priority getPriority() {
+        return this.priority;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
     }
 
     public String getJobId() {

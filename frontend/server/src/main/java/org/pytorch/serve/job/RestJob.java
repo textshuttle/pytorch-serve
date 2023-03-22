@@ -159,6 +159,14 @@ public class RestJob extends Job {
                         "ms",
                         ConfigManager.getInstance().getHostName(),
                         DIMENSION));
+        loggerTsMetrics.info(
+            "{}",
+            new Metric(
+                    "RequestPriority",
+                    this.getPriority().toString(),
+                    "category",
+                    ConfigManager.getInstance().getHostName(),
+                    DIMENSION));
     }
 
     @Override
