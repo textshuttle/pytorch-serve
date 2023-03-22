@@ -27,6 +27,7 @@ import org.pytorch.serve.job.RestJob;
 import org.pytorch.serve.metrics.Dimension;
 import org.pytorch.serve.metrics.Metric;
 import org.pytorch.serve.util.ConfigManager;
+import org.pytorch.serve.util.GPUManager;
 import org.pytorch.serve.util.Connector;
 import org.pytorch.serve.util.codec.ModelRequestEncoder;
 import org.pytorch.serve.util.codec.ModelResponseDecoder;
@@ -57,6 +58,7 @@ public class WorkerThread implements Runnable {
             new ModelRequestEncoder(ConfigManager.getInstance().getPreferDirectBuffer());
 
     private ConfigManager configManager;
+    private GPUManager gpuManager;
     private EventLoopGroup backendEventGroup;
     private int port;
     private Model model;
@@ -142,19 +144,20 @@ public class WorkerThread implements Runnable {
 
     public WorkerThread(
             ConfigManager configManager,
+            GPUManager gpuManager,
             EventLoopGroup backendEventGroup,
             int port,
-            int gpuId,
             Model model,
             BatchAggregator aggregator,
             WorkerStateListener listener) {
         this.workerId = String.valueOf(port); // Unique across all workers.
         this.configManager = configManager;
+        this.gpuManager = gpuManager;
         this.backendEventGroup = backendEventGroup;
         this.port = port;
         this.model = model;
         this.aggregator = aggregator;
-        this.gpuId = gpuId;
+        this.gpuId = gpuManager.getGPU(this.workerId);
         this.listener = listener;
         startTime = System.currentTimeMillis();
         lifeCycle = new WorkerLifeCycle(configManager, model);
@@ -451,6 +454,8 @@ public class WorkerThread implements Runnable {
         if (backoffIdx < BACK_OFF.length - 1) {
             ++backoffIdx;
         }
+
+        this.gpuId = gpuManager.getGPU(this.workerId);
 
         manager.getScheduler()
                 .schedule(() -> manager.submitTask(this), BACK_OFF[backoffIdx], TimeUnit.SECONDS);
