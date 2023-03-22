@@ -33,7 +33,7 @@ public final class GPUManager {
         this.maxShareFailures = maxShareFailures;
 
         if (nGPUs > 0) {
-            this.workerIds = new ConcurrentHashMap<String, Integer> ();
+            this.workerIds = new ConcurrentHashMap<> ();
             this.nFailures = new AtomicInteger[this.nGPUs];
             this.freeMemory = new AtomicInteger[this.nGPUs];
             for (int i = 0; i < this.nGPUs; i++) {
