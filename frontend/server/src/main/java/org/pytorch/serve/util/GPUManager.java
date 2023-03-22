@@ -119,8 +119,7 @@ public final class GPUManager {
                 if (shareFailures < this.maxShareFailures) {
                     eligibleIdFreeMems.put(i, this.freeMemory[i].intValue());
                 } else {
-                    logger.warn("GPU ID " + String.valueOf(i) + " deemed ineligible since it accounts for at least " + 
-                        String.valueOf(this.maxShareFailures) + " of failures");
+                    logger.warn("GPU ID {} deemed ineligible since it accounts for at least {} of failures", i, this.maxShareFailures);
                 }
             }
         }
