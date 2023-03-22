@@ -3,6 +3,8 @@ package org.pytorch.serve.util;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.TreeMap;
+import java.util.Iterator;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -17,27 +19,29 @@ import org.slf4j.LoggerFactory;
 public final class GPUManager {
 
     private static final Logger logger = LoggerFactory.getLogger(GPUManager.class);
+    private static final int nFailureHistory = 100;
 
     private static GPUManager instance;
 
     private final int nGPUs;
     private final int minFreeMemory;
     private final float maxShareFailures;
-    private AtomicInteger[] nFailures;
+
     private AtomicInteger[] freeMemory;
     private ConcurrentHashMap<String, Integer> workerIds;
+    private LinkedBlockingDeque<Integer> gpuFailureHistory;
 
     private GPUManager(int nGPUs, int minFreeMemory, float maxShareFailures) {
         this.nGPUs = nGPUs;
         this.minFreeMemory = minFreeMemory;
         this.maxShareFailures = maxShareFailures;
 
+        this.gpuFailureHistory = new LinkedBlockingDeque<> (nFailureHistory);
+        this.workerIds = new ConcurrentHashMap<> ();
+
         if (nGPUs > 0) {
-            this.workerIds = new ConcurrentHashMap<> ();
-            this.nFailures = new AtomicInteger[this.nGPUs];
             this.freeMemory = new AtomicInteger[this.nGPUs];
             for (int i = 0; i < this.nGPUs; i++) {
-                this.nFailures[i] = new AtomicInteger(0);
                 this.freeMemory[i] = new AtomicInteger(-1);
             }
         }
@@ -95,19 +99,24 @@ public final class GPUManager {
         if (this.nGPUs == 0) {
             return gpuId;
         }
+        int failedGpuId;
         // if the worker was previously assigned to a GPU and now requests a new one, it has likely failed
-        // increment failure counter for the previously assigned GPU
+        // add failed gpu id to failure history, removing old entries to make space if necessary
         if (this.workerIds.containsKey(workerId)) {
-            this.nFailures[this.workerIds.get(workerId)].incrementAndGet();
+            failedGpuId = this.workerIds.get(workerId);
+            while (!this.gpuFailureHistory.offer(failedGpuId)) {
+                this.gpuFailureHistory.removeFirst();
+            }
         }
         // get free memory per GPU
         for (int i = 0; i < this.nGPUs; i++) {
             this.freeMemory[i].set(queryNvidiaSmiFreeMemory(i));
         }
-        // get total failures for share calculation
-        int nFailuresSum = 0;
-        for (int i = 0; i < this.nGPUs; i++) {
-            nFailuresSum += this.nFailures[i].intValue();
+        // get failures for share calculation
+        int[] nFailures = new int[this.nGPUs];
+        for (Iterator<Integer> iter = this.gpuFailureHistory.iterator(); iter.hasNext();) {
+            failedGpuId = iter.next();
+            nFailures[failedGpuId]++;
         }
         // get free memory for all eligible GPUs
         HashMap<Integer, Integer> eligibleIdFreeMems = new HashMap<Integer, Integer> ();
@@ -115,7 +124,7 @@ public final class GPUManager {
             // check that free memory is available and exceeds minimum
             if (this.freeMemory[i].intValue() > this.minFreeMemory) {
                 // check that share of failures is smaller than maximum
-                float shareFailures = (float) this.nFailures[i].intValue() / (float) nFailuresSum;
+                float shareFailures = (float) nFailures[i] / (float) this.gpuFailureHistory.size();
                 if (shareFailures < this.maxShareFailures) {
                     eligibleIdFreeMems.put(i, this.freeMemory[i].intValue());
                 } else {
@@ -146,9 +155,9 @@ public final class GPUManager {
             // make random selection
             float randFloat = ThreadLocalRandom.current().nextFloat();
             gpuId = cumProbIds.ceilingEntry(randFloat).getValue();
-            logger.info("Assigning gpuId " + String.valueOf(gpuId) + 
-                        " with free memory " + String.valueOf(eligibleIdFreeMems.get(gpuId)) + 
-                        " with number of failures " + String.valueOf(this.nFailures[gpuId].intValue()) + 
+            logger.info("Assigning gpuId " + gpuId + 
+                        " with free memory " + eligibleIdFreeMems.get(gpuId) + 
+                        " with number of failures " + nFailures[gpuId] + 
                         " to workerId " + workerId);
         }
         return gpuId;
