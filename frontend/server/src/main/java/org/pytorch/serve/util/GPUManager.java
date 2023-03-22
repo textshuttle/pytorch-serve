@@ -4,8 +4,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.Iterator;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayDeque;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.nio.charset.StandardCharsets;
@@ -28,16 +27,16 @@ public final class GPUManager {
     private final float maxShareFailures;
 
     private AtomicInteger[] freeMemory;
-    private ConcurrentHashMap<String, Integer> workerIds;
-    private LinkedBlockingDeque<Integer> gpuFailureHistory;
+    private HashMap<String, Integer> workerIds;
+    private ArrayDeque<Integer> gpuFailureHistory;
 
     private GPUManager(int nGPUs, int minFreeMemory, float maxShareFailures) {
         this.nGPUs = nGPUs;
         this.minFreeMemory = minFreeMemory;
         this.maxShareFailures = maxShareFailures;
 
-        this.gpuFailureHistory = new LinkedBlockingDeque<> (nFailureHistory);
-        this.workerIds = new ConcurrentHashMap<> ();
+        this.gpuFailureHistory = new ArrayDeque<> ();
+        this.workerIds = new HashMap<> ();
 
         if (nGPUs > 0) {
             this.freeMemory = new AtomicInteger[this.nGPUs];
@@ -82,18 +81,18 @@ public final class GPUManager {
         return -1;
     }
 
-    public static void init(ConfigManager configManager) {
+    public static synchronized void init(ConfigManager configManager) {
         int nGPUs = configManager.getNumberOfGpu();
         int minFreeMemory = configManager.getMinFreeGpuMemory();
         float maxShareFailures = configManager.getMaxShareGpuFailures();
         instance = new GPUManager(nGPUs, minFreeMemory, maxShareFailures);
     }
 
-    public static GPUManager getInstance() {
+    public static synchronized GPUManager getInstance() {
         return instance;
     }
 
-    public int getGPU(String workerId) {
+    public synchronized int getGPU(String workerId) {
         int gpuId = -1;
         // return -1 if there are no gpus
         if (this.nGPUs == 0) {
@@ -104,9 +103,10 @@ public final class GPUManager {
         // add failed gpu id to failure history, removing old entries to make space if necessary
         if (this.workerIds.containsKey(workerId)) {
             failedGpuId = this.workerIds.get(workerId);
-            while (!this.gpuFailureHistory.offer(failedGpuId)) {
+            while (this.gpuFailureHistory.size() > nFailureHistory - 1) {
                 this.gpuFailureHistory.removeFirst();
             }
+            this.gpuFailureHistory.addLast(failedGpuId);
         }
         // get free memory per GPU
         for (int i = 0; i < this.nGPUs; i++) {
