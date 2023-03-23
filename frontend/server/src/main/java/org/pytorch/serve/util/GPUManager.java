@@ -133,6 +133,7 @@ public final class GPUManager {
                 } else {
                     eligibleIdFreeMems.put(i, this.freeMemory[i].intValue());
                 }
+                logger.info("eligibleIdFreeMems[{}] = {}", i, this.freeMemory[i].intValue());
 
             }
         }
@@ -158,6 +159,7 @@ public final class GPUManager {
                 int freeMem = entry.getValue();
                 cumProb += (float) freeMem / (float) eligibleIdFreeMemSum;
                 cumProbIds.put(cumProb, i);
+                logger.info("cumProbIds[{}] = {}", cumProb, i);
             }
             // make random selection
             float randFloat = ThreadLocalRandom.current().nextFloat();
