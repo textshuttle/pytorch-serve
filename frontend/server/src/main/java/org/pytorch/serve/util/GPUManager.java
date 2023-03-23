@@ -93,10 +93,9 @@ public final class GPUManager {
     }
 
     public synchronized int getGPU(String workerId) {
-        int gpuId = -1;
         // return -1 if there are no gpus
         if (this.nGPUs == 0) {
-            return gpuId;
+            return -1;
         }
         int failedGpuId;
         // if the worker was previously assigned to a GPU and now requests a new one, it has likely failed
@@ -123,19 +122,27 @@ public final class GPUManager {
         for (int i = 0; i < this.nGPUs; i++) {
             // check that free memory is available and exceeds minimum
             if (this.freeMemory[i].intValue() > this.minFreeMemory) {
-                // check that share of failures is smaller than maximum
-                float shareFailures = (float) nFailures[i] / (float) this.gpuFailureHistory.size();
-                if (shareFailures < this.maxShareFailures) {
-                    eligibleIdFreeMems.put(i, this.freeMemory[i].intValue());
+                if (this.gpuFailureHistory.size() > 1) {
+                    // check that share of failures is smaller than maximum
+                    float shareFailures = (float) nFailures[i] / (float) this.gpuFailureHistory.size();
+                    if (shareFailures < this.maxShareFailures) {
+                        eligibleIdFreeMems.put(i, this.freeMemory[i].intValue());
+                    } else {
+                        logger.warn("GPU ID {} deemed ineligible since it accounts for {} out of failures {}", i, nFailures[i], this.maxShareFailures);
+                    }
                 } else {
-                    logger.warn("GPU ID {} deemed ineligible since it accounts for at least {} of failures", i, this.maxShareFailures);
+                    eligibleIdFreeMems.put(i, this.freeMemory[i].intValue());
                 }
+
             }
         }
         // fork on number of eligible GPUs
+        int gpuId = -1;
         if (eligibleIdFreeMems.size() == 0) {
-            logger.error("No eligible GPUs available");
-        } else if (eligibleIdFreeMems.size() == 1) {
+            logger.error("No eligible GPUs available, falling back to CPU");
+            return gpuId;
+        }
+        if (eligibleIdFreeMems.size() == 1) {
             gpuId = eligibleIdFreeMems.keySet().iterator().next();
         } else {
             // get sum of eligible id free memory for prob calculation
@@ -155,11 +162,11 @@ public final class GPUManager {
             // make random selection
             float randFloat = ThreadLocalRandom.current().nextFloat();
             gpuId = cumProbIds.ceilingEntry(randFloat).getValue();
-            logger.info("Assigning gpuId " + gpuId + 
-                        " with free memory " + eligibleIdFreeMems.get(gpuId) + 
-                        " with number of failures " + nFailures[gpuId] + 
-                        " to workerId " + workerId);
         }
+        logger.info("Assigning gpuId " + gpuId + 
+                    " with free memory " + eligibleIdFreeMems.get(gpuId) + 
+                    " with number of failures " + nFailures[gpuId] + 
+                    " to workerId " + workerId);
         return gpuId;
     }
 }
