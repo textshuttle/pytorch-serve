@@ -133,9 +133,11 @@ public final class GPUManager {
                 } else {
                     eligibleIdFreeMems.put(i, this.freeMemory[i].intValue());
                 }
+                logger.info("eligibleIdFreeMems[{}] {}", i, this.freeMemory[i].intValue());
 
             }
         }
+        logger.info("eligibleIdFreeMems.size() {}", eligibleIdFreeMems.size());
         // fork on number of eligible GPUs
         int gpuId = -1;
         if (eligibleIdFreeMems.size() == 0) {
@@ -150,6 +152,7 @@ public final class GPUManager {
             for (Map.Entry<Integer, Integer> entry : eligibleIdFreeMems.entrySet()) {
                 eligibleIdFreeMemSum += entry.getValue();
             }
+            logger.info("eligibleIdFreeMemSum {}", eligibleIdFreeMemSum);
             // store cumulative probabilities in navigable map
             float cumProb = 0.0f;
             TreeMap<Float, Integer> cumProbIds = new TreeMap<Float, Integer> ();
@@ -157,11 +160,14 @@ public final class GPUManager {
                 int i = entry.getKey();
                 int freeMem = entry.getValue();
                 cumProbIds.put(cumProb, i);
+                logger.info("cumProbIds[{}] {} because of freeMem {}", cumProb, i, freeMem);
                 cumProb += (float) freeMem / (float) eligibleIdFreeMemSum;
             }
             // make random selection
             float randFloat = ThreadLocalRandom.current().nextFloat();
+            logger.info("randFloat {}", randFloat);
             gpuId = cumProbIds.ceilingEntry(randFloat).getValue();
+            logger.info("gpuId {}", gpuId);
         }
         logger.info("Assigning gpuId " + gpuId + 
                     " with free memory " + eligibleIdFreeMems.get(gpuId) + 
