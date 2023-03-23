@@ -149,8 +149,8 @@ public final class GPUManager {
             for (Map.Entry<Integer, Integer> entry : eligibleIdFreeMems.entrySet()) {
                 int i = entry.getKey();
                 int freeMem = entry.getValue();
-                cumProbIds.put(cumProb, i);
                 cumProb += (float) freeMem / (float) eligibleIdFreeMemSum;
+                cumProbIds.put(cumProb, i);
             }
             // make random selection
             float randFloat = ThreadLocalRandom.current().nextFloat();
