@@ -207,7 +207,7 @@ public class RestJob extends Job {
                             "Failed to update frontend metric ts_queue_latency_microseconds: ", e);
                 }
             }
-            
+
             logger.debug(
                     "Waiting time ns: {}, Backend time ns: {}",
                     getScheduled() - getBegin(),

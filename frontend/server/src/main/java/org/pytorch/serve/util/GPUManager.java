@@ -159,9 +159,10 @@ public final class GPUManager {
             for (Map.Entry<Integer, Integer> entry : eligibleIdFreeMems.entrySet()) {
                 int i = entry.getKey();
                 int freeMem = entry.getValue();
-                cumProbIds.put(cumProb, i);
-                logger.info("cumProbIds[{}] {} because of freeMem {}", cumProb, i, freeMem);
                 cumProb += (float) freeMem / (float) eligibleIdFreeMemSum;
+                cumProbIds.put(cumProb, i);
+                // TODO Simon: This log should maybe have been removed during rebase
+                logger.info("cumProbIds[{}] {} because of freeMem {}", cumProb, i, freeMem);
             }
             // make random selection
             float randFloat = ThreadLocalRandom.current().nextFloat();
