@@ -12,8 +12,10 @@ import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.pytorch.serve.util.ConfigManager;
 import org.pytorch.serve.util.messages.EnvironmentUtils;
+import org.pytorch.serve.wlm.ModelVersionedRefs;
 import org.pytorch.serve.wlm.ModelManager;
 import org.pytorch.serve.wlm.WorkerThread;
+import org.pytorch.serve.wlm.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +33,26 @@ public class MetricCollector implements Runnable {
     @Override
     public void run() {
         try {
+
+            // Collect Model level Metrics
+            ModelManager modelManager = ModelManager.getInstance();
+            for (Map.Entry<String, ModelVersionedRefs> mEntry : modelManager.getAllModels()) {
+                String modelName = mEntry.getKey();
+                for (Map.Entry<String, Model> vEntry : mEntry.getValue().getAllVersions()) {
+                    String versionName = vEntry.getKey();
+                    Model model = vEntry.getValue();
+                    String mvStatusString = model.getQueueStatusString();
+                    loggerMetrics.info(
+                            "{}",
+                            new Metric(
+                                    "QueueStatus",
+                                    mvStatusString,
+                                    "jobsInQueue",
+                                    modelName,
+                                        new Dimension("Level", "ModelVersion")));
+                }
+            }
+
             // Collect System level Metrics
             String[] args = new String[4];
             args[0] = configManager.getPythonExecutable();
@@ -40,9 +62,8 @@ public class MetricCollector implements Runnable {
             File workingDir = new File(configManager.getModelServerHome());
 
             String[] envp = EnvironmentUtils.getEnvString(workingDir.getAbsolutePath(), null, null);
-
             final Process p = Runtime.getRuntime().exec(args, envp, workingDir); // NOPMD
-            ModelManager modelManager = ModelManager.getInstance();
+
             Map<Integer, WorkerThread> workerMap = modelManager.getWorkers();
             try (OutputStream os = p.getOutputStream()) {
                 writeWorkerPids(workerMap, os);
