@@ -138,7 +138,7 @@ public class PriorityLinkedBlockingDeque<T extends Prioritisable> {
             int currentQueueStatus = this.priorityDeques.get(priority).size();
             response = response + priority.toString() + "=" + String.valueOf(currentQueueStatus) + ",";
         }
-        response = response.substring(0, response.length() - 1) + "|queueSize=" + String.valueOf(this.queueSize);
+        response = response + "queueSize=" + String.valueOf(this.queueSize);
         return response;
 
     }
