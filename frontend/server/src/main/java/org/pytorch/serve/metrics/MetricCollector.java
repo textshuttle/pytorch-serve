@@ -48,7 +48,7 @@ public class MetricCollector implements Runnable {
                                     "QueueStatus",
                                     mvStatusString,
                                     "Requests",
-                                    modelName,
+                                    modelName + "/" + versionName,
                                         new Dimension("Level", "Host")));
                 }
             }
