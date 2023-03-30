@@ -252,4 +252,8 @@ public class Model {
     public void setResponseTimeout(int responseTimeout) {
         this.responseTimeout = responseTimeout;
     }
+
+    public String getQueueStatusString() {
+        return jobsDb.get(DEFAULT_DATA_QUEUE).getQueueStatusString();
+    }
 }
