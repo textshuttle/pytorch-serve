@@ -230,7 +230,6 @@ Set nvidia environment variables. For example:
 ```
 A model's parameters are defined in [model source code](https://github.com/pytorch/serve/blob/master/frontend/server/src/main/java/org/pytorch/serve/wlm/Model.java#L24)
 
-
 * `minWorkers`: the minimum number of workers of a model
 * `maxWorkers`: the maximum number of workers of a model
 * `batchSize`: the batch size of a model
@@ -250,7 +249,8 @@ models={\
         "maxWorkers": 1,\
         "batchSize": 4,\
         "maxBatchDelay": 100,\
-        "responseTimeout": 120\
+        "responseTimeout": 120,\
+        "queueTimeout": 120,\
     }\
   },\
   "vgg16": {\
@@ -261,7 +261,8 @@ models={\
         "maxWorkers": 4,\
         "batchSize": 8,\
         "maxBatchDelay": 100,\
-        "responseTimeout": 120\
+        "responseTimeout": 120,\
+        "queueTimeout": 120,\
     }\
   }\
 }
@@ -278,7 +279,8 @@ Most of the following properties are designed for performance tuning. Adjusting 
 * `job_queue_size`: Number inference jobs that frontend will queue before backend can serve. Default: 100.
 * `n_priorities`: Number of priorities that jobs can have supplied via header `X-TS-Priority`. Default: 1.
 * `async_logging`: Enable asynchronous logging for higher throughput, log output may be delayed if this is enabled. Default: false.
-* `default_response_timeout`: Timeout, in seconds, used for all models backend workers before they are deemed unresponsive and rebooted. Default: 120 seconds.
+* `default_response_timeout`: Timeout, in seconds, used for model's backend workers before they are deemed unresponsive and rebooted. Default: 120 seconds.
+* `default_queue_timeout`: Maximum time, in milliseconds, a prediction request can stay in queue before being considered stale. Default: 120 milliseconds.
 * `unregister_model_timeout`: Timeout, in seconds, used when handling an unregister model request when cleaning a process before it is deemed unresponsive and an error response is sent. Default: 120 seconds.
 * `decode_input_request`: Configuration to let backend workers to decode requests, when the content type is known.
 If this is set to "true", backend workers do "Bytearray to JSON object" conversion when the content type is "application/json" and

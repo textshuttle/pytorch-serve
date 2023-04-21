@@ -252,6 +252,7 @@ public class ModelServer {
                                 1,
                                 100,
                                 configManager.getDefaultResponseTimeout(),
+                                configManager.getDefaultQueueTimeout(),
                                 defaultModelName,
                                 false,
                                 false,
