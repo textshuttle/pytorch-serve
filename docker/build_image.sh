@@ -11,6 +11,7 @@ USE_CUSTOM_TAG=false
 CUDA_VERSION=""
 USE_LOCAL_SERVE_FOLDER=false
 BUILD_WITH_IPEX=false
+PYTHON_VERSION=3.9
 
 for arg in "$@"
 do
@@ -25,6 +26,7 @@ do
           echo "-t, --tag specify tag name for docker image"
           echo "-lf, --use-local-serve-folder specify this option for the benchmark image if the current 'serve' folder should be used during automated benchmarks"
           echo "-ipex, --build-with-ipex specify to build with intel_extension_for_pytorch"
+          echo "-py, --pythonversion specify to python version to use: Possible values: 3.8 3.9 3.10"
           exit 0
           ;;
         -b|--branch_name)
@@ -62,6 +64,17 @@ do
           ;;
         -ipex|--build-with-ipex)
           BUILD_WITH_IPEX=true
+          shift
+          ;;
+        -py|--pythonversion)
+          PYTHON_VERSION="$2"
+          if [[ $PYTHON_VERSION = 3.8 || $PYTHON_VERSION = 3.9 || $PYTHON_VERSION = 3.10 ]]; then
+            echo "Valid python version"
+          else
+            echo "Valid python versions are 3.8, 3.9 and 3.10"
+            exit 1
+          fi
+          shift
           shift
           ;;
         # With default ubuntu version 20.04
