@@ -18,39 +18,42 @@
 
 ARG BASE_IMAGE=ubuntu:rolling
 
+# Note:
+# Define here the default python version to be used in all later build-stages as default.
+# ARG and ENV variables do not persist across stages (they're build-stage scoped).
+# That is crucial for ARG PYTHON_VERSION, which otherwise becomes "" leading to nasty bugs,
+# that don't let the build fail, but break current version handling logic and result
+# in images with wrong python version. To fix that, we will restate the ARG PYTHON_VERSION
+# on each build-stage.
+ARG PYTHON_VERSION=3.9
+
 FROM ${BASE_IMAGE} AS compile-image
 ARG BASE_IMAGE=ubuntu:rolling
-ARG PYTHON_VERSION=3.9
+ARG PYTHON_VERSION
 ENV PYTHONUNBUFFERED TRUE
 
 RUN --mount=type=cache,id=apt-dev,target=/var/cache/apt \
-    #apt --fix-broken -y install && \
     apt-get update && \
     apt-get upgrade -y && \
     apt-get install software-properties-common -y && \
     add-apt-repository -y ppa:deadsnakes/ppa && \
     apt remove python-pip  python3-pip && \
     DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-    ca-certificates \
-    g++ \
-    python$PYTHON_VERSION \
-    python$PYTHON_VERSION-dev \
-    python3-distutils \
-    python$PYTHON_VERSION-venv \
-    python3-venv \
-    openjdk-17-jdk \
-    curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && cd /tmp \
-    && curl -O https://bootstrap.pypa.io/get-pip.py \
-    && python$PYTHON_VERSION get-pip.py
+        ca-certificates \
+        g++ \
+        python3-distutils \
+        python$PYTHON_VERSION \
+        python$PYTHON_VERSION-dev \
+        python$PYTHON_VERSION-venv \
+        openjdk-17-jdk \
+        curl \
+        git \
+    && rm -rf /var/lib/apt/lists/*
 
-
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python$PYTHON_VERSION 1 \
-    && update-alternatives --install /usr/local/bin/pip pip /usr/local/bin/pip3 1
-
-RUN python$PYHON_VERSION -m venv /home/venv
-
+# Make the virtual environment and "activating" it by adding it first to the path.
+# From here on the python$PYTHON_VERSION interpreter is used and the packages
+# are installed in /home/venv which is what we need for the "runtime-image"
+RUN python$PYTHON_VERSION -m venv /home/venv
 ENV PATH="/home/venv/bin:$PATH"
 
 RUN python -m pip install -U pip setuptools
@@ -60,34 +63,44 @@ RUN export USE_CUDA=1
 
 ARG CUDA_VERSION=""
 
-RUN TORCH_VER=$(curl --silent --location https://pypi.org/pypi/torch/json | python -c "import sys, json, pkg_resources; releases = json.load(sys.stdin)['releases']; print(sorted(releases, key=pkg_resources.parse_version)[-1])") && \
-    TORCH_VISION_VER=$(curl --silent --location https://pypi.org/pypi/torchvision/json | python -c "import sys, json, pkg_resources; releases = json.load(sys.stdin)['releases']; print(sorted(releases, key=pkg_resources.parse_version)[-1])") && \
+RUN git clone --depth 1 https://github.com/pytorch/serve.git
+
+WORKDIR "serve"
+
+RUN \
     if echo "$BASE_IMAGE" | grep -q "cuda:"; then \
         # Install CUDA version specific binary when CUDA version is specified as a build arg
         if [ "$CUDA_VERSION" ]; then \
-            python -m pip install --no-cache-dir torch==$TORCH_VER+$CUDA_VERSION torchvision==$TORCH_VISION_VER+$CUDA_VERSION -f https://download.pytorch.org/whl/torch_stable.html; \
-        # Install the binary with the latest CUDA version support
+            python ./ts_scripts/install_dependencies.py --cuda $CUDA_VERSION; \
+        # Install the binary with the latest CPU image on a CUDA base image
         else \
-            python -m pip install --no-cache-dir torch torchvision; \
+            python ./ts_scripts/install_dependencies.py; \
         fi; \
-        python -m pip install --no-cache-dir -r https://raw.githubusercontent.com/pytorch/serve/master/requirements/common.txt; \
     # Install the CPU binary
     else \
-        python -m pip install --no-cache-dir torch==$TORCH_VER+cpu torchvision==$TORCH_VISION_VER+cpu -f https://download.pytorch.org/whl/torch_stable.html; \
+        python ./ts_scripts/install_dependencies.py; \
     fi
-RUN python -m pip install -U setuptools && python -m pip install --no-cache-dir captum torchtext torchserve torch-model-archiver
+
+# Make sure latest version of torchserve is uploaded before running this
+RUN python -m pip install --no-cache-dir torchserve torch-model-archiver torch-workflow-archiver
 
 # Final image for production
 FROM ${BASE_IMAGE} AS runtime-image
-
+# Re-state ARG PYTHON_VERSION to make it active in this build-stage (uses default define at the top)
+ARG PYTHON_VERSION
 ENV PYTHONUNBUFFERED TRUE
 
 RUN --mount=type=cache,target=/var/cache/apt \
     apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install software-properties-common -y && \
+    add-apt-repository -y ppa:deadsnakes/ppa && \
+    apt remove python-pip  python3-pip && \
     DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
     python$PYTHON_VERSION \
     python3-distutils \
     python$PYTHON_VERSION-dev \
+    python$PYTHON_VERSION-venv \
     # using openjdk-17-jdk due to circular dependency(ca-certificates) bug in openjdk-17-jre-headless debian package
     # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1009905
     openjdk-17-jdk \

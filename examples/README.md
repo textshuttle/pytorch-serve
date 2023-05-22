@@ -1,4 +1,4 @@
-# Examples showcasing TorchServe Features and Integrations
+# [Examples showcasing TorchServe Features and Integrations](#torchserve-internals)
 
 ## TorchServe Internals
 
@@ -25,6 +25,8 @@
 
 * [Serving HuggingFace transformers model](Huggingface_Transformers)
 
+### PiPPy [Serving Large Models with PyTorch Native Solution PiPPy](large_models/Huggingface_pippy/Readme.md)
+
 ### MLFlow <img src="images/mlflow.png" width="50"  title="MLFlow" style="float:right padding:20px" />
 
 * [Deploy models using `mlflow-torchserve` plugin](https://github.com/mlflow/mlflow-torchserve/tree/master/examples)
@@ -43,7 +45,7 @@
 
 ### Microsoft DeepSpeed-MII <img src="images/mii-white.svg" width="80" title="DeepSpeed MII" style="float:top" />
 
-* [HuggingFace Stable Diffusion Model with Microsoft DeepSpeed-MII](deepspeed_mii)
+* [HuggingFace Stable Diffusion Model with Microsoft DeepSpeed-MII](large_models/deepspeed_mii/Readme.md)
 
 ### Prometheus and mtail <img src="images/prometheus-logo.svg" width="30" title="Prometheus" style="float:top" />
 
@@ -66,8 +68,8 @@
 ### Stable Diffusion <img src="images/huggingface_logo-noborder.svg" width="30" height="30" title="Hugging Face" style="float:right padding:10px" />
 * [Stable Diffusion using HuggingFace Diffusers](diffusers)
 
-### HuggingFace Large Models <img src="images/huggingface_logo-noborder.svg" width="30" height="30" title="Hugging Face" style="float:right padding:10px" />
-* [HuggingFace Large Models with constrained resources](Huggingface_Largemodels)
+### HuggingFace Large Models with Accelerate <img src="images/huggingface_logo-noborder.svg" width="30" height="30" title="Hugging Face" style="float:right padding:10px" />
+* [HuggingFace Large Models with constrained resources](large_models/Huggingface_accelerate/Readme.md)
 
 ## UseCases
 
@@ -110,7 +112,7 @@ Following are the steps to create a torch-model-archive (.mar) to execute an eag
 
 * Pre-requisites to create a torch model archive (.mar) :
     * serialized-file (.pt) : This file represents the `state_dict` in case of eager mode model.
-    * model-file (.py) : This file contains model class extended from `torch nn`.modules representing the model architecture. This parameter is mandatory for eager mode models. This file must contain only one class definition extended from torch.nn.modules
+    * model-file (.py) : This file contains model class extended from `torch nn`.modules representing the model architecture. This parameter is mandatory for eager mode models. This file must contain only one class definition extended from [torch.nn.Module](https://pytorch.org/docs/stable/generated/torch.nn.Module.html).
     * index_to_name.json : This file contains the mapping of predicted index to class. The default TorchServe handles returns the predicted index and probability. This file can be passed to model archiver using --extra-files parameter.
     * version : Model's version.
     * handler : TorchServe default handler's name or path to custom inference handler(.py)

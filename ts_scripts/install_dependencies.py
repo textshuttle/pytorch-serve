@@ -50,18 +50,22 @@ class Common:
             # as it may reinstall the packages with different versions
             os.system("conda install -y conda-build")
 
-        self.install_torch_packages(cuda_version)
         os.system(f"{sys.executable} -m pip install -U pip setuptools")
         # developer.txt also installs packages from common.txt
         os.system(f"{sys.executable} -m pip install -U -r {requirements_file_path}")
-        # If conda is available install conda-build package
 
-        # TODO: This will run 2 installations for torch but to make this cleaner we should first refactor all of our requirements.txt into just 2 files
-        # And then make torch an optional dependency for the common.txt
+        # Install dependencies for GPU
+        if not isinstance(cuda_version, type(None)):
+            gpu_requirements_file = os.path.join("requirements", "common_gpu.txt")
+            os.system(f"{sys.executable} -m pip install -U -r {gpu_requirements_file}")
+
+        # Install PyTorch packages
         if nightly:
             os.system(
-                f"pip3 install numpy --pre torch[dynamo] torchvision torchtext torchaudio --force-reinstall --extra-index-url https://download.pytorch.org/whl/nightly/{cuda_version}"
+                f"pip3 install numpy --pre torch torchvision torchtext torchaudio --force-reinstall --extra-index-url https://download.pytorch.org/whl/nightly/{cuda_version}"
             )
+        else:
+            self.install_torch_packages(cuda_version)
 
     def install_node_packages(self):
         os.system(
@@ -72,6 +76,9 @@ class Common:
         pass
 
     def install_wget(self):
+        pass
+
+    def install_numactl(self):
         pass
 
 
@@ -107,6 +114,10 @@ class Linux(Common):
         os.system(f"cd libgit2-1.3.0 && cmake . && make && sudo make install && cd ..")
         os.system(f"rm -rf libgit2-1.3.0 && rm libgit2-1.3.0.tar.gz")
 
+    def install_numactl(self):
+        if os.system("numactl --show") != 0 or args.force:
+            os.system(f"{self.sudo_cmd}apt-get install -y numactl")
+
 
 class Windows(Common):
     def __init__(self):
@@ -120,6 +131,9 @@ class Windows(Common):
         pass
 
     def install_wget(self):
+        pass
+
+    def install_numactl(self):
         pass
 
 
@@ -146,6 +160,10 @@ class Darwin(Common):
         if os.system("wget --version") != 0 or args.force:
             os.system("brew install wget")
 
+    def install_numactl(self):
+        if os.system("numactl --show") != 0 or args.force:
+            os.system("brew install numactl")
+
 
 def install_dependencies(cuda_version=None, nightly=False):
     os_map = {"Linux": Linux, "Windows": Windows, "Darwin": Darwin}
@@ -161,9 +179,10 @@ def install_dependencies(cuda_version=None, nightly=False):
 
     # Sequence of installation to be maintained
     system.install_java()
-    requirements_file_path = "requirements/" + (
-        "production.txt" if args.environment == "prod" else "developer.txt"
-    )
+
+    requirements_file = "common.txt" if args.environment == "prod" else "developer.txt"
+    requirements_file_path = os.path.join("requirements", requirements_file)
+
     system.install_python_packages(cuda_version, requirements_file_path, nightly)
 
 
@@ -181,7 +200,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--cuda",
         default=None,
-        choices=["cu92", "cu101", "cu102", "cu111", "cu113", "cu116", "cu117"],
+        choices=["cu92", "cu101", "cu102", "cu111", "cu113", "cu116", "cu117", "cu118"],
         help="CUDA version for torch",
     )
     parser.add_argument(
