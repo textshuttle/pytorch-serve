@@ -22,11 +22,16 @@ ARG CUDA_VERSION
 ARG BUILD_WITH_IPEX
 ARG IPEX_VERSION=1.11.0
 ARG IPEX_URL=https://software.intel.com/ipex-whl-stable
+ARG PYTHON_VERSION=3.9
+
 
 ENV PYTHONUNBUFFERED TRUE
 
 RUN --mount=type=cache,id=apt-dev,target=/var/cache/apt \
     apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install software-properties-common -y && \
+    add-apt-repository -y ppa:deadsnakes/ppa && \
     DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
     fakeroot \
     ca-certificates \
@@ -34,10 +39,10 @@ RUN --mount=type=cache,id=apt-dev,target=/var/cache/apt \
     sudo \
     g++ \
     git \
-    python3.8 \
-    python3.8-dev \
-    python3.8-venv \
-    python3.8-distutils \
+    python$PYTHON_VERSION \
+    python$PYTHON_VERSION-dev \
+    python$PYTHON_VERSION-venv \
+    python$PYTHON_VERSION-distutils \
    # python3-venv \
     build-essential \
     openjdk-17-jdk \
@@ -49,14 +54,14 @@ RUN --mount=type=cache,id=apt-dev,target=/var/cache/apt \
     && rm -rf /var/lib/apt/lists/* \
     && cd /tmp \
     && curl -O https://bootstrap.pypa.io/get-pip.py \
-    && python3.8 get-pip.py
+    && python$PYTHON_VERSION get-pip.py
 
 RUN mkdir -p /root/.ssh && \
     chmod 0700 /root/.ssh && \
     ssh-keyscan github.com > /root/.ssh/known_hosts
 
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.8 1 \
-    && update-alternatives --install /usr/local/bin/pip pip /usr/local/bin/pip3.8 1
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python$PYTHON_VERSION \
+    && update-alternatives --install /usr/local/bin/pip pip /usr/local/bin/pip3
 
 # Build Dev Image
 FROM compile-image AS dev-image
@@ -66,7 +71,7 @@ RUN --mount=type=ssh if [ "$MACHINE_TYPE" = "gpu" ]; then export USE_CUDA=1; fi 
     && git clone git@github.com:textshuttle/pytorch-serve.git \
     && cd pytorch-serve \
     && git checkout ${BRANCH_NAME} \
-    && python3.8 -m venv /home/venv \
+    && python$PYTHON_VERSION -m venv /home/venv \
     && python -m pip install -U pip setuptools \
     && if [ -z "$CUDA_VERSION" ]; then python ts_scripts/install_dependencies.py --environment=dev; else python ts_scripts/install_dependencies.py --environment=dev  --cuda $CUDA_VERSION; fi \ 
     && if [ "$BUILD_WITH_IPEX" = "true" ]; then python -m pip install --no-cache-dir intel_extension_for_pytorch==${IPEX_VERSION} -f ${IPEX_URL}; fi \
