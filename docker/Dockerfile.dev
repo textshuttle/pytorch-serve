@@ -40,9 +40,9 @@ RUN --mount=type=cache,id=apt-dev,target=/var/cache/apt \
     git \
     python$PYTHON_VERSION \
     python$PYTHON_VERSION-dev \
-    python3-distutils \
     python$PYTHON_VERSION-venv \
-    python3-venv \
+    python$PYTHON_VERSION-distutils \
+   # python3-venv \
     build-essential \
     openjdk-17-jdk \
     curl \
@@ -54,8 +54,12 @@ RUN --mount=type=cache,id=apt-dev,target=/var/cache/apt \
     && curl -O https://bootstrap.pypa.io/get-pip.py \
     && python$PYTHON_VERSION get-pip.py
 
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python$PYTHON_VERSION 1 \
-    && update-alternatives --install /usr/local/bin/pip pip /usr/local/bin/pip3 1
+RUN mkdir -p /root/.ssh && \
+    chmod 0700 /root/.ssh && \
+    ssh-keyscan github.com > /root/.ssh/known_hosts
+
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python$PYTHON_VERSION \
+    && update-alternatives --install /usr/local/bin/pip pip /usr/local/bin/pip3
 
 # Build Dev Image
 FROM compile-image AS dev-image
