@@ -33,10 +33,6 @@ public class WorkLoadManager {
     private AtomicInteger distributionPort;
     private AtomicInteger gpuCounter;
 
-    public WorkLoadManager(ConfigManager configManager, EventLoopGroup backendGroup) {
-
-    private static final Logger logger = LoggerFactory.getLogger(WorkLoadManager.class);
-
     public WorkLoadManager(ConfigManager configManager, GPUManager gpuManager, EventLoopGroup backendGroup) {
         this.configManager = configManager;
         this.gpuManager = gpuManager;
@@ -246,11 +242,9 @@ public class WorkLoadManager {
             WorkerThread thread =
                     new WorkerThread(
                             configManager,
-                            gpuManager,
                             backendGroup,
                             currentPort,
-                            gpuId,
-                            configManager.isDebug() ? port.get() : port.getAndIncrement(),
+                            gpuManager,
                             model,
                             aggregator,
                             listener);

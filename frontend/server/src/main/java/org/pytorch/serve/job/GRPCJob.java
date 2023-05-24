@@ -96,25 +96,8 @@ public class GRPCJob extends Job {
                     } catch (Exception e) {
                         logger.error("Failed to update frontend metric QueueTime: ", e);
                     }
-
-                    // TODO Simon: should these two logs also be in the if (this.queTimeMetric != null) clause?
-                    loggerTsMetrics.info(
-                            "{}",
-                            new Metric(
-                                    "QueueTime",
-                                    String.valueOf(queueTime),
-                                    "ms",
-                                    ConfigManager.getInstance().getHostName(),
-                                    DIMENSION));
-                    loggerTsMetrics.info(
-                            "{}",
-                            new Metric(
-                                    "RequestPriority",
-                                    String.valueOf(this.getPriority()),
-                                    "category",
-                                    ConfigManager.getInstance().getHostName(),
-                                    DIMENSION));
                 }
+                // TODO Simon: we should probably also add, as we did before the queue priority here
             }
         } else if (this.getCmd() == WorkerCommands.DESCRIBE) {
             try {

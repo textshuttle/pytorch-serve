@@ -87,7 +87,7 @@ public class WorkerThread implements Runnable {
             ConfigManager configManager,
             EventLoopGroup backendEventGroup,
             int port,
-            int gpuId,
+            GPUManager gpuManager,
             Model model,
             BatchAggregator aggregator,
             WorkerStateListener listener) {
@@ -97,7 +97,8 @@ public class WorkerThread implements Runnable {
         this.port = port;
         this.model = model;
         this.aggregator = aggregator;
-        this.gpuId = gpuId;
+        this.gpuManager = gpuManager;
+        this.gpuId = gpuManager.getGPU(this.workerId);
         this.listener = listener;
         startTime = System.currentTimeMillis();
         lifeCycle = new WorkerLifeCycle(configManager, model);
@@ -170,35 +171,6 @@ public class WorkerThread implements Runnable {
 
     public WorkerLifeCycle getLifeCycle() {
         return lifeCycle;
-    }
-
-    public WorkerThread(
-            ConfigManager configManager,
-            GPUManager gpuManager,
-            EventLoopGroup backendEventGroup,
-            int port,
-            Model model,
-            BatchAggregator aggregator,
-            WorkerStateListener listener) {
-        this.workerId = String.valueOf(port); // Unique across all workers.
-        this.configManager = configManager;
-        this.gpuManager = gpuManager;
-        this.backendEventGroup = backendEventGroup;
-        this.port = port;
-        this.model = model;
-        this.aggregator = aggregator;
-        this.gpuId = gpuManager.getGPU(this.workerId);
-        this.listener = listener;
-        startTime = System.currentTimeMillis();
-        lifeCycle = new WorkerLifeCycle(configManager, model);
-        replies = new ArrayBlockingQueue<>(1);
-        workerLoadTime =
-                new Metric(
-                        getWorkerName(),
-                        String.valueOf(System.currentTimeMillis()),
-                        "ms",
-                        ConfigManager.getInstance().getHostName(),
-                        new Dimension("Level", "Host"));
     }
 
     @Override

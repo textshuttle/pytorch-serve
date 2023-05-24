@@ -373,6 +373,7 @@ public class Model {
 
     public void setClientTimeoutInMills(long clientTimeoutInMills) {
         this.clientTimeoutInMills = clientTimeoutInMills;
+    }
 
     public String getQueueStatusString() {
         return jobsDb.get(DEFAULT_DATA_QUEUE).getQueueStatusString();

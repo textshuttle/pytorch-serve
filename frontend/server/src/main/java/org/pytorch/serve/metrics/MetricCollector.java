@@ -33,25 +33,7 @@ public class MetricCollector implements Runnable {
     @Override
     public void run() {
         try {
-
-            // Collect Model level Metrics
-            ModelManager modelManager = ModelManager.getInstance();
-            for (Map.Entry<String, ModelVersionedRefs> mEntry : modelManager.getAllModels()) {
-                String modelName = mEntry.getKey();
-                for (Map.Entry<String, Model> vEntry : mEntry.getValue().getAllVersions()) {
-                    String versionName = vEntry.getKey();
-                    Model model = vEntry.getValue();
-                    String mvStatusString = model.getQueueStatusString();
-                    loggerMetrics.info(
-                            "{}",
-                            new Metric(
-                                    "QueueStatus",
-                                    mvStatusString,
-                                    "Requests",
-                                    modelName,
-                                        new Dimension("Level", "Host")));
-                }
-            }
+            // TODO Simon: there was previously something related to metrics here, we might add it back
 
             // Collect System level Metrics
             String[] args = new String[4];
@@ -63,7 +45,7 @@ public class MetricCollector implements Runnable {
 
             String[] envp = EnvironmentUtils.getEnvString(workingDir.getAbsolutePath(), null, null);
             final Process p = Runtime.getRuntime().exec(args, envp, workingDir); // NOPMD
-
+            ModelManager modelManager = ModelManager.getInstance();
             Map<Integer, WorkerThread> workerMap = modelManager.getWorkers();
             try (OutputStream os = p.getOutputStream()) {
                 writeWorkerPids(workerMap, os);
