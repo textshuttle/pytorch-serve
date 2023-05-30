@@ -142,5 +142,5 @@ elif [ "${BUILD_TYPE}" == "benchmark" ]
 then
   DOCKER_BUILDKIT=1 docker build --pull --no-cache --file Dockerfile.benchmark --build-arg USE_LOCAL_SERVE_FOLDER=$USE_LOCAL_SERVE_FOLDER --build-arg BASE_IMAGE="${BASE_IMAGE}" --build-arg BRANCH_NAME="${BRANCH_NAME}" --build-arg CUDA_VERSION="${CUDA_VERSION}" --build-arg MACHINE_TYPE="${MACHINE}" --build-arg PYTHON_VERSION="${PYTHON_VERSION}" -t "${DOCKER_TAG}" .
 else
-  DOCKER_BUILDKIT=1 docker build --pull --no-cache --file Dockerfile.dev -t "${DOCKER_TAG}" --build-arg BUILD_TYPE="${BUILD_TYPE}" --build-arg BASE_IMAGE=$BASE_IMAGE --build-arg BRANCH_NAME="${BRANCH_NAME}" --build-arg CUDA_VERSION="${CUDA_VERSION}" --build-arg MACHINE_TYPE="${MACHINE}" --build-arg BUILD_WITH_IPEX="${BUILD_WITH_IPEX}" --build-arg PYTHON_VERSION="${PYTHON_VERSION}" .
+  DOCKER_BUILDKIT=1 docker build --ssh default --progress plain --pull --no-cache --file Dockerfile.dev -t "${DOCKER_TAG}" --build-arg BUILD_TYPE="${BUILD_TYPE}" --build-arg BASE_IMAGE=$BASE_IMAGE --build-arg BRANCH_NAME="${BRANCH_NAME}" --build-arg CUDA_VERSION="${CUDA_VERSION}" --build-arg MACHINE_TYPE="${MACHINE}" --build-arg BUILD_WITH_IPEX="${BUILD_WITH_IPEX}" --build-arg PYTHON_VERSION="${PYTHON_VERSION}" .
 fi

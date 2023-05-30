@@ -157,8 +157,9 @@ public class InferenceImpl extends InferenceAPIsServiceImplBase {
             Job job = new GRPCJob(responseObserver, modelName, modelVersion, workerCmd, inputData);
 
             if (!modelManager.addJob(job)) {
+                String priority = job.getPriority().toString();
                 String responseMessage =
-                        ApiUtils.getInferenceErrorResponseMessage(modelName, modelVersion);
+                        ApiUtils.getInferenceErrorResponseMessage(modelName, modelVersion, priority);
                 InternalServerException e = new InternalServerException(responseMessage);
                 sendErrorResponse(
                         responseObserver, Status.INTERNAL, e, "InternalServerException.()");

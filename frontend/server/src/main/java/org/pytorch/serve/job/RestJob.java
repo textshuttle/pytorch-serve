@@ -185,7 +185,7 @@ public class RestJob extends Job {
         } else if (responsePromise != null) {
             responsePromise.complete(body);
         }
-
+        
         if (numStreams <= 0) {
             if (this.inferenceLatencyMetric != null) {
                 try {
@@ -224,6 +224,7 @@ public class RestJob extends Job {
                     logger.error("Failed to update frontend metric QueueTime: ", e);
                 }
             }
+            // TODO Simon: we should probably also add, as we did before the queue priority here
         }
     }
 

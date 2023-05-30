@@ -1,6 +1,7 @@
 package org.pytorch.serve.http;
 
 import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpHeaders;
 import java.util.UUID;
 
 public class Session {
@@ -23,7 +24,14 @@ public class Session {
             method = "GET";
             protocol = "HTTP/1.1";
         }
-        requestId = UUID.randomUUID().toString();
+
+        HttpHeaders headers = request.headers();
+        if (headers.contains("x-request-id")) {
+            // adopt header value as prefix for internal request id
+            requestId = headers.getAsString("x-request-id") + ":" + UUID.randomUUID().toString();
+        } else {
+            requestId = UUID.randomUUID().toString();
+        }
         startTime = System.currentTimeMillis();
     }
 

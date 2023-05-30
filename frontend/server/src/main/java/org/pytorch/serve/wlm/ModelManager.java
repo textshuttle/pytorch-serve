@@ -266,7 +266,7 @@ public final class ModelManager {
             int maxBatchDelay,
             int responseTimeout,
             boolean isWorkflowModel) {
-        Model model = new Model(archive, configManager.getJobQueueSize());
+        Model model = new Model(archive, configManager.getJobQueueSize(), configManager.getHighPrioProb());
 
         if (archive.getModelConfig() != null) {
             int marBatchSize = archive.getModelConfig().getBatchSize();
@@ -312,7 +312,7 @@ public final class ModelManager {
     }
 
     private Model createModel(ModelArchive archive, JsonObject modelInfo) {
-        Model model = new Model(archive, configManager.getJobQueueSize());
+        Model model = new Model(archive, configManager.getJobQueueSize(), configManager.getHighPrioProb());
         model.setModelState(modelInfo);
         model.setWorkflowModel(false);
 

@@ -79,6 +79,8 @@ public class GRPCJob extends Job {
                             && responseHeaders.get(TS_STREAM_NEXT).equals("false"))) {
                 predictionResponseObserver.onCompleted();
 
+                        // TODO Simon: During rebase this part was moved inside the if bloc,
+                        // verify that this is correct
                 logger.debug(
                         "Waiting time ns: {}, Backend time ns: {}",
                         getScheduled() - getBegin(),
@@ -95,6 +97,7 @@ public class GRPCJob extends Job {
                         logger.error("Failed to update frontend metric QueueTime: ", e);
                     }
                 }
+                // TODO Simon: we should probably also add, as we did before the queue priority here
             }
         } else if (this.getCmd() == WorkerCommands.DESCRIBE) {
             try {
