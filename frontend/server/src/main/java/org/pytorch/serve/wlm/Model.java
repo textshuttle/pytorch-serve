@@ -65,6 +65,9 @@ public class Model {
     // Per worker thread job queue. This separates out the control queue from data queue
     private ConcurrentMap<String, PriorityLinkedBlockingDeque<Job>> jobsDb;
 
+    private boolean useJobTicket;
+    private AtomicInteger numJobTickets;
+
     public Model(ModelArchive modelArchive, int queueSize, float highPrioProb) {
         this.modelArchive = modelArchive;
         if (modelArchive != null && modelArchive.getModelConfig() != null) {
@@ -79,7 +82,7 @@ public class Model {
                         (modelArchive.getModelConfig().getDeviceType() == ModelConfig.DeviceType.GPU
                                         && ConfigManager.getInstance().getNumberOfGpu() > 0)
                                 ? ModelConfig.DeviceType.GPU
-                                : deviceType;
+                                : ModelConfig.DeviceType.CPU;
             }
 
             deviceIds = modelArchive.getModelConfig().getDeviceIds();
@@ -96,6 +99,11 @@ public class Model {
             }
             maxRetryTimeoutInMill = modelArchive.getModelConfig().getMaxRetryTimeoutInSec() * 1000;
             clientTimeoutInMills = modelArchive.getModelConfig().getClientTimeoutInMills();
+            if (modelArchive.getModelConfig().getJobQueueSize() > 0) {
+                // overwrite the queueSize defined on config.property
+                queueSize = modelArchive.getModelConfig().getJobQueueSize();
+            }
+            useJobTicket = modelArchive.getModelConfig().isUseJobTicket();
         } else {
             batchSize = 1;
             maxBatchDelay = 100;
@@ -120,6 +128,7 @@ public class Model {
         // Always have a queue for data
         jobsDb.putIfAbsent(DEFAULT_DATA_QUEUE, new PriorityLinkedBlockingDeque<>(this.queueSize, this.highPrioProb));
         failedInfReqs = new AtomicInteger(0);
+        numJobTickets = new AtomicInteger(0);
         lock = new ReentrantLock();
         modelVersionName =
                 new ModelVersionName(
@@ -234,6 +243,10 @@ public class Model {
     }
 
     public boolean addJob(Job job) {
+        if (isUseJobTicket() && !getJobTickets()) {
+            logger.info("There are no job tickets");
+            return false;
+        }
         return jobsDb.get(DEFAULT_DATA_QUEUE).offer(job);
     }
 
@@ -262,6 +275,9 @@ public class Model {
         }
 
         try {
+            if (isUseJobTicket()) {
+                incNumJobTickets();
+            }
             lock.lockInterruptibly();
             long maxDelay = maxBatchDelay;
             jobsQueue = jobsDb.get(DEFAULT_DATA_QUEUE);
@@ -377,5 +393,26 @@ public class Model {
 
     public String getQueueStatusString() {
         return jobsDb.get(DEFAULT_DATA_QUEUE).getQueueStatusString();
+    }
+
+    public boolean isUseJobTicket() {
+        return useJobTicket;
+    }
+
+    public int incNumJobTickets() {
+        return this.numJobTickets.incrementAndGet();
+    }
+
+    public int decNumJobTickets() {
+        return this.numJobTickets.decrementAndGet();
+    }
+
+    public synchronized boolean getJobTickets() {
+        if (this.numJobTickets.get() == 0) {
+            return false;
+        }
+
+        this.numJobTickets.decrementAndGet();
+        return true;
     }
 }
