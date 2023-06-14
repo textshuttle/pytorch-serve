@@ -73,7 +73,7 @@ RUN --mount=type=ssh if [ "$MACHINE_TYPE" = "gpu" ]; then export USE_CUDA=1; fi 
     && git checkout ${BRANCH_NAME} \
     && python$PYTHON_VERSION -m venv /home/venv
 ENV PATH="/home/venv/bin:$PATH"
-WORKDIR serve
+WORKDIR pytorch-serve
 RUN python -m pip install -U pip setuptools \
     && if [ -z "$CUDA_VERSION" ]; then python ts_scripts/install_dependencies.py --environment=dev; else python ts_scripts/install_dependencies.py --environment=dev  --cuda $CUDA_VERSION; fi \
     && if [ "$BUILD_WITH_IPEX" = "true" ]; then python -m pip install --no-cache-dir intel_extension_for_pytorch==${IPEX_VERSION} -f ${IPEX_URL}; fi \
