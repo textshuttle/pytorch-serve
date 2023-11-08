@@ -48,7 +48,12 @@ RUN --mount=type=cache,id=apt-dev,target=/var/cache/apt \
         openjdk-17-jdk \
         curl \
         git \
+        openssh-client \
     && rm -rf /var/lib/apt/lists/*
+    
+RUN mkdir -p /root/.ssh && \
+    chmod 0700 /root/.ssh && \
+    ssh-keyscan github.com > /root/.ssh/known_hosts
 
 # Make the virtual environment and "activating" it by adding it first to the path.
 # From here on the python$PYTHON_VERSION interpreter is used and the packages
@@ -63,7 +68,7 @@ RUN export USE_CUDA=1
 
 ARG CUDA_VERSION=""
 
-RUN --mount=type=ssh git clone --depth 1 https://github.com/pytorch/serve.git
+RUN --mount=type=ssh git clone git@github.com:textshuttle/pytorch-serve.git serve
 
 WORKDIR "serve"
 
