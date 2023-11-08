@@ -3,7 +3,7 @@
 set -o errexit -o nounset -o pipefail
 
 MACHINE=cpu
-BRANCH_NAME="master"
+BRANCH_NAME="torchserve-23mt-v0.8.0"
 DOCKER_TAG="pytorch/torchserve:latest-cpu"
 BUILD_TYPE="production"
 BASE_IMAGE="ubuntu:20.04"

@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# build 23mt-cpu
-./build_image.sh -bt dev -b torchserve-23mt -t textshuttle/pytorch-serve:23mt-cpu
+# build cpu
+./build_image.sh -t textshuttle/pytorch-serve:torchserve-23mt-v0.8.0-v2-cpu
 
-# build 23mt-gpu
-./build_image.sh -bt dev -g -cv cu113 -b torchserve-23mt -t textshuttle/pytorch-serve:23mt-gpu
+# build gpu
+./build_image.sh -g -cv cu118 -t textshuttle/pytorch-serve:torchserve-23mt-v0.8.0-v2-gpu
