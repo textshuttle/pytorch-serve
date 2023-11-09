@@ -68,7 +68,7 @@ RUN export USE_CUDA=1
 
 ARG CUDA_VERSION=""
 
-RUN --mount=type=ssh git clone git@github.com:textshuttle/pytorch-serve.git serve
+RUN --mount=type=ssh git clone git@github.com:textshuttle/pytorch-serve.git -b build/production-image serve
 
 WORKDIR "serve"
 
