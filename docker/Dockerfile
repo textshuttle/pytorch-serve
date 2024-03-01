@@ -25,7 +25,7 @@ ARG BASE_IMAGE=ubuntu:rolling
 # that don't let the build fail, but break current version handling logic and result
 # in images with wrong python version. To fix that, we will restate the ARG PYTHON_VERSION
 # on each build-stage.
-ARG PYTHON_VERSION=3.9
+ARG PYTHON_VERSION=3.9.16
 
 FROM ${BASE_IMAGE} AS compile-image
 ARG BASE_IMAGE=ubuntu:rolling
