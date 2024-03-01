@@ -381,10 +381,6 @@ public final class ConfigManager {
         return getIntProperty(TS_MIN_FREE_GPU_MEMORY, 4096);
     }
 
-    public float getMaxShareGpuFailures() {
-        return getFloatProperty(TS_MAX_SHARE_GPU_FAILURES, 0.90f);
-    }
-
     public int getOverrideGpuId() {
         return getIntProperty(TS_OVERRIDE_GPU_ID, -1);
     }
