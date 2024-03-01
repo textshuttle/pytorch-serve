@@ -686,7 +686,9 @@ public final class ConfigManager {
                 + "\nWorkflow Store: "
                 + (getWorkflowStore() == null ? "N/A" : getWorkflowStore())
                 + "\nModel config: "
-                + prop.getProperty(MODEL_CONFIG, "N/A");
+                + prop.getProperty(MODEL_CONFIG, "N/A")
+                + "\nOverride GPU ID: "
+                + getOverrideGpuId();
     }
 
     public boolean useNativeIo() {
