@@ -3,9 +3,9 @@
 set -o errexit -o nounset -o pipefail
 
 MACHINE=cpu
-BRANCH_NAME="master"
-DOCKER_TAG="pytorch/torchserve:latest-cpu"
-BUILD_TYPE="production"
+BRANCH_NAME=""
+DOCKER_TAG=""
+BUILD_TYPE=""
 BASE_IMAGE="ubuntu:20.04"
 USE_CUSTOM_TAG=false
 CUDA_VERSION=""

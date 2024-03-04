@@ -1,7 +1,15 @@
 #!/bin/sh
 
-# build 23mt-cpu
-./build_image.sh -bt dev -b torchserve-23mt -t textshuttle/pytorch-serve:23mt-cpu
+# increment when appropriate
+VERSION=3
 
-# build 23mt-gpu
-./build_image.sh -bt dev -g -cv cu113 -b torchserve-23mt -t textshuttle/pytorch-serve:23mt-gpu
+# these need to be -bt dev, otherwise the pip torchserve version will be installed
+
+# build cpu
+./build_image.sh -bt dev -b torchserve-23mt-v0.8.0 -t textshuttle/pytorch-serve:torchserve-23mt-v0.8.0-v${VERSION}-cpu
+
+# build gpu
+./build_image.sh -bt dev -b torchserve-23mt-v0.8.0 -g -cv cu118 -t textshuttle/pytorch-serve:torchserve-23mt-v0.8.0-v${VERSION}-gpu
+
+# note that this will build arm/amd images depending on your OS
+# for multi-platform building and tagging, see https://github.com/textshuttle/pytorch-serve/pull/15#issuecomment-1906360733
