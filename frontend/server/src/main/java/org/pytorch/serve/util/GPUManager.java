@@ -18,24 +18,21 @@ import org.slf4j.LoggerFactory;
 public final class GPUManager {
 
     private static final Logger logger = LoggerFactory.getLogger(GPUManager.class);
-    private static final int nFailureHistory = 100;
 
     private static GPUManager instance;
 
     private final int nGPUs;
     private final int minFreeMemory;
-    private final float maxShareFailures;
+    private final int overrideGpuId;
 
     private AtomicInteger[] freeMemory;
     private HashMap<String, Integer> workerIds;
-    private ArrayDeque<Integer> gpuFailureHistory;
 
-    private GPUManager(int nGPUs, int minFreeMemory, float maxShareFailures) {
+    private GPUManager(int nGPUs, int minFreeMemory, int overrideGpuId) {
         this.nGPUs = nGPUs;
         this.minFreeMemory = minFreeMemory;
-        this.maxShareFailures = maxShareFailures;
+        this.overrideGpuId = overrideGpuId;
 
-        this.gpuFailureHistory = new ArrayDeque<> ();
         this.workerIds = new HashMap<> ();
 
         if (nGPUs > 0) {
@@ -84,8 +81,8 @@ public final class GPUManager {
     public static synchronized void init(ConfigManager configManager) {
         int nGPUs = configManager.getNumberOfGpu();
         int minFreeMemory = configManager.getMinFreeGpuMemory();
-        float maxShareFailures = configManager.getMaxShareGpuFailures();
-        instance = new GPUManager(nGPUs, minFreeMemory, maxShareFailures);
+        int override_gpu_id = configManager.getOverrideGpuId();
+        instance = new GPUManager(nGPUs, minFreeMemory, override_gpu_id);
     }
 
     public static synchronized GPUManager getInstance() {
@@ -95,44 +92,24 @@ public final class GPUManager {
     public synchronized int getGPU(String workerId) {
         // return -1 if there are no gpus
         if (this.nGPUs == 0) {
+            logger.error("No eligible GPUs available, falling back to CPU");
             return -1;
         }
-        int failedGpuId;
-        // if the worker was previously assigned to a GPU and now requests a new one, it has likely failed
-        // add failed gpu id to failure history, removing old entries to make space if necessary
-        if (this.workerIds.containsKey(workerId)) {
-            failedGpuId = this.workerIds.get(workerId);
-            while (this.gpuFailureHistory.size() > nFailureHistory - 1) {
-                this.gpuFailureHistory.removeFirst();
-            }
-            this.gpuFailureHistory.addLast(failedGpuId);
+        // return override if given
+        if (this.overrideGpuId > -1) {
+            return this.overrideGpuId;
         }
         // get free memory per GPU
         for (int i = 0; i < this.nGPUs; i++) {
             this.freeMemory[i].set(queryNvidiaSmiFreeMemory(i));
         }
-        // get failures for share calculation
-        int[] nFailures = new int[this.nGPUs];
-        for (Iterator<Integer> iter = this.gpuFailureHistory.iterator(); iter.hasNext();) {
-            failedGpuId = iter.next();
-            nFailures[failedGpuId]++;
-        }
+
         // get free memory for all eligible GPUs
         HashMap<Integer, Integer> eligibleIdFreeMems = new HashMap<Integer, Integer> ();
         for (int i = 0; i < this.nGPUs; i++) {
             // check that free memory is available and exceeds minimum
             if (this.freeMemory[i].intValue() > this.minFreeMemory) {
-                if (this.gpuFailureHistory.size() > 1) {
-                    // check that share of failures is smaller than maximum
-                    float shareFailures = (float) nFailures[i] / (float) this.gpuFailureHistory.size();
-                    if (shareFailures < this.maxShareFailures) {
-                        eligibleIdFreeMems.put(i, this.freeMemory[i].intValue());
-                    } else {
-                        logger.warn("GPU ID {} deemed ineligible since it accounts for {} out of failures {}", i, nFailures[i], this.maxShareFailures);
-                    }
-                } else {
-                    eligibleIdFreeMems.put(i, this.freeMemory[i].intValue());
-                }
+                eligibleIdFreeMems.put(i, this.freeMemory[i].intValue());
                 logger.info("eligibleIdFreeMems[{}] {}", i, this.freeMemory[i].intValue());
 
             }
@@ -161,8 +138,6 @@ public final class GPUManager {
                 int freeMem = entry.getValue();
                 cumProb += (float) freeMem / (float) eligibleIdFreeMemSum;
                 cumProbIds.put(cumProb, i);
-                // TODO Simon: This log should maybe have been removed during rebase
-                logger.info("cumProbIds[{}] {} because of freeMem {}", cumProb, i, freeMem);
             }
             // make random selection
             float randFloat = ThreadLocalRandom.current().nextFloat();
@@ -172,7 +147,6 @@ public final class GPUManager {
         }
         logger.info("Assigning gpuId " + gpuId + 
                     " with free memory " + eligibleIdFreeMems.get(gpuId) + 
-                    " with number of failures " + nFailures[gpuId] + 
                     " to workerId " + workerId);
         return gpuId;
     }

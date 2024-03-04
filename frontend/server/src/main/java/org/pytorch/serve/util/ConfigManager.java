@@ -68,6 +68,7 @@ public final class ConfigManager {
     private static final String TS_NUMBER_OF_GPU = "number_of_gpu";
     private static final String TS_MIN_FREE_GPU_MEMORY = "min_free_gpu_memory";
     private static final String TS_MAX_SHARE_GPU_FAILURES = "max_share_gpu_failures";
+    private static final String TS_OVERRIDE_GPU_ID = "override_gpu_id";
     private static final String TS_METRICS_CONFIG = "metrics_config";
     private static final String TS_METRICS_MODE = "metrics_mode";
     private static final String TS_DISABLE_SYSTEM_METRICS = "disable_system_metrics";
@@ -380,8 +381,8 @@ public final class ConfigManager {
         return getIntProperty(TS_MIN_FREE_GPU_MEMORY, 4096);
     }
 
-    public float getMaxShareGpuFailures() {
-        return getFloatProperty(TS_MAX_SHARE_GPU_FAILURES, 0.90f);
+    public int getOverrideGpuId() {
+        return getIntProperty(TS_OVERRIDE_GPU_ID, -1);
     }
 
     public String getMetricsConfigPath() {
@@ -685,7 +686,9 @@ public final class ConfigManager {
                 + "\nWorkflow Store: "
                 + (getWorkflowStore() == null ? "N/A" : getWorkflowStore())
                 + "\nModel config: "
-                + prop.getProperty(MODEL_CONFIG, "N/A");
+                + prop.getProperty(MODEL_CONFIG, "N/A")
+                + "\nOverride GPU ID: "
+                + getOverrideGpuId();
     }
 
     public boolean useNativeIo() {
