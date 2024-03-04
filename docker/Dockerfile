@@ -68,7 +68,8 @@ RUN export USE_CUDA=1
 
 ARG CUDA_VERSION=""
 
-RUN --mount=type=ssh git clone git@github.com:textshuttle/pytorch-serve.git -b build/production-image serve
+# Note: This is **only** used to install dependencies in this image - changing it will not build a custom image
+RUN git clone --depth 1 https://github.com/pytorch/serve.git
 
 WORKDIR "serve"
 
