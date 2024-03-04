@@ -3,6 +3,8 @@
 # increment when appropriate
 VERSION=2
 
+# these need to be -bt dev, otherwise the pip torchserve version will be installed
+
 # build cpu
 ./build_image.sh -bt dev -b torchserve-23mt-v0.8.0 -t textshuttle/pytorch-serve:torchserve-23mt-v0.8.0-v${VERSION}-cpu
 

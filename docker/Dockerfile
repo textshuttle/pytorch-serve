@@ -48,12 +48,7 @@ RUN --mount=type=cache,id=apt-dev,target=/var/cache/apt \
         openjdk-17-jdk \
         curl \
         git \
-        openssh-client \
     && rm -rf /var/lib/apt/lists/*
-    
-RUN mkdir -p /root/.ssh && \
-    chmod 0700 /root/.ssh && \
-    ssh-keyscan github.com > /root/.ssh/known_hosts
 
 # Make the virtual environment and "activating" it by adding it first to the path.
 # From here on the python$PYTHON_VERSION interpreter is used and the packages
