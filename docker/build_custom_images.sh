@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # increment when appropriate
-VERSION=2
+VERSION=3
 
 # these need to be -bt dev, otherwise the pip torchserve version will be installed
 
