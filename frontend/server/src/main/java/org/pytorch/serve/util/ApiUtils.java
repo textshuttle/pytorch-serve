@@ -38,7 +38,13 @@ import org.pytorch.serve.wlm.ModelVersionedRefs;
 import org.pytorch.serve.wlm.WorkerState;
 import org.pytorch.serve.wlm.WorkerThread;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public final class ApiUtils {
+
+
+    private static final Logger logger = LoggerFactory.getLogger(ApiUtils.class);
 
     private ApiUtils() {}
 
@@ -396,6 +402,7 @@ public final class ApiUtils {
         if (!ModelManager.getInstance().addJob(job)) {
             String priority = job.getPriority().toString();
             String responseMessage = getInferenceErrorResponseMessage(modelName, version, priority);
+            logger.warn("503 Service Unavailable: {}", responseMessage);
             throw new ServiceUnavailableException(responseMessage);
         }
         return job;
@@ -403,13 +410,13 @@ public final class ApiUtils {
 
     @SuppressWarnings("PMD")
     public static String getInferenceErrorResponseMessage(String modelName, String modelVersion, String jobPriority) {
-        String responseMessage = "Model: " + modelName + "\n";
+        String responseMessage = "Model: " + modelName + ", ";
 
         if (modelVersion != null) {
-            responseMessage += "Version: " + modelVersion + "\n";
+            responseMessage += "Version: " + modelVersion + ", ";
         }
 
-        responseMessage += "Priority: " + jobPriority + "\n";
+        responseMessage += "Priority: " + jobPriority + ", ";
 
         responseMessage +=
                 "Reason: queue full";
